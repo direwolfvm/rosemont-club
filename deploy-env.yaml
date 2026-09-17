@@ -1,0 +1,7 @@
+GOOGLE_CLOUD_PROJECT: "permitting-ai-helper"
+FIRESTORE_DATABASE: "rosemont-club"
+FIREBASE_TENANT_ID: "alex311-qfnem"
+FIREBASE_API_KEY: "AIzaSyDO7YTX1BF7joEJvTeZsbI0c4kAaINFhC0"
+FIREBASE_APP_ID: "1:650621702399:web:c76c7781c435ef2e273cca"
+APP_BASE_URL: "https://rosemont.club"
+APP_ADDITIONAL_ORIGINS: "https://rosemont-club-650621702399.us-east4.run.app,https://rosemont-club-wiz2ttea4a-uk.a.run.app"
