@@ -60,11 +60,15 @@ jobs:
           service_account: ${{ env.DEPLOYER_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
+      # The staging directory is given explicitly. Without it, gcloud verifies
+      # the default bucket by listing every bucket in the project, which the
+      # deployer is deliberately not allowed to do.
       - name: Submit Cloud Build
         run: |
           gcloud builds submit \
             --config cloudbuild.yaml \
             --project "$GCP_PROJECT" \
+            --gcs-source-staging-dir "gs://${GCP_PROJECT}_cloudbuild/source" \
             --quiet
 
       - name: Verify the live service

@@ -28,7 +28,7 @@ The deployer service account holds only what a submit-and-verify needs:
 |---|---|---|
 | `roles/cloudbuild.builds.editor` | project | submit and read builds |
 | `roles/serviceusage.serviceUsageConsumer` | project | use the project as the quota project |
-| `roles/storage.legacyBucketWriter` | bucket `permitting-ai-helper_cloudbuild` | upload the build source tarball |
+| `roles/storage.legacyBucketWriter` | bucket `permitting-ai-helper_cloudbuild` | upload the build source tarball (the workflow passes `--gcs-source-staging-dir` so gcloud does not need to list the project's buckets) |
 | `roles/iam.serviceAccountUser` | the Compute Engine default service account | Cloud Build runs the build as that account |
 | `roles/run.viewer` | project | read the serving revision after deploy |
 | `roles/iam.workloadIdentityUser` | the deployer service account, granted to `principalSet://.../attribute.repository/direwolfvm/rosemont-club` | let this repository's workflows impersonate it |
