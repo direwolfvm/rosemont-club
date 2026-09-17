@@ -1,0 +1,13 @@
+# Code owners are requested for review on every pull request, and branch
+# protection requires their approval before merging. Deployment, permission,
+# and data-handling files are listed explicitly so the intent is visible.
+*                       @direwolfvm
+/.github/               @direwolfvm
+/cloudbuild.yaml        @direwolfvm
+/Dockerfile             @direwolfvm
+/deploy-env.yaml        @direwolfvm
+/firestore.rules        @direwolfvm
+/lib/auth.ts            @direwolfvm
+/lib/residency.ts       @direwolfvm
+/app/api/               @direwolfvm
+/scripts/               @direwolfvm

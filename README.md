@@ -8,7 +8,7 @@ Temporary live URL: https://rosemont-club-650621702399.us-east4.run.app
 
 Repository: https://github.com/direwolfvm/rosemont-club
 
-Implementation branch: `codex/rosemont-club`. Changes remain in the local working tree for review; no commit or push was made.
+Changes arrive through pull requests to `main`, which deploy automatically on merge. See [docs/CI-CD.md](docs/CI-CD.md), [CONTRIBUTING.md](CONTRIBUTING.md), and [SECURITY.md](SECURITY.md).
 
 Deployment verified September 17, 2026: revision `rosemont-club-00006-x7q`, Cloud Build `eeabd2cc-5e80-46ad-a563-cbf89047ca4a`, serving 100% of traffic.
 
@@ -122,9 +122,9 @@ node --env-file=.env.local --import tsx scripts/seed.ts
 gcloud builds submit --config cloudbuild.yaml --project=permitting-ai-helper
 ```
 
-Cloud Build publishes to the existing `us-east4-docker.pkg.dev/permitting-ai-helper/cloud-run-source-deploy` registry and deploys only `rosemont-club`. The non-root Node 22 container uses Next's standalone output. Runtime: `rosemont-runtime@permitting-ai-helper.iam.gserviceaccount.com`; 0 minimum/3 maximum instances, 512 MiB, 1 CPU, concurrency 40, 60-second timeout. Health check: `/api/health`. IAM permits public HTTP entry, while app permissions govern records and actions.
+Merges to `main` run the `Deploy` GitHub Actions workflow, which authenticates to Google Cloud without stored keys (Workload Identity Federation as `rosemont-deployer`) and runs the same Cloud Build pipeline; pull requests run typecheck, tests, build, audit, dependency review, secret scanning, and CodeQL without secrets. Cloud Build publishes to the existing `us-east4-docker.pkg.dev/permitting-ai-helper/cloud-run-source-deploy` registry and deploys only `rosemont-club`. The non-root Node 22 container uses Next's standalone output. Runtime: `rosemont-runtime@permitting-ai-helper.iam.gserviceaccount.com`; 0 minimum/3 maximum instances, 512 MiB, 1 CPU, concurrency 40, 60-second timeout. Health check: `/api/health`. IAM permits public HTTP entry, while app permissions govern records and actions.
 
-The named Firestore database has deletion protection. The project's free-tier database allocation is already used by `spinup`, so Rosemont incurs normal low-volume operation/storage charges. No backup schedule or point-in-time recovery has been enabled; decide retention and recovery policy before substantial adoption. CI/CD configuration is supplied; no GitHub trigger was attached automatically.
+The named Firestore database has deletion protection. The project's free-tier database allocation is already used by `spinup`, so Rosemont incurs normal low-volume operation/storage charges. No backup schedule or point-in-time recovery has been enabled; decide retention and recovery policy before substantial adoption.
 
 ### Custom domain
 

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security issue
+    url: https://github.com/direwolfvm/rosemont-club/security/advisories/new
+    about: Please report security problems privately here, not in a public issue.
+  - name: Ideas for the site
+    url: https://rosemont.club/governance
+    about: You can also send ideas to the volunteers from the site itself.
