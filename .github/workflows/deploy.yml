@@ -11,7 +11,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main, ci-cd] # TEMPORARY: ci-cd added to verify the workflow before merge
+    branches: [main]
   workflow_dispatch:
 
 permissions:

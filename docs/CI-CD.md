@@ -52,8 +52,10 @@ workload identity user binding.
 - Branch protection on `main`: pull request required, one approving review
   from a code owner, stale reviews dismissed, conversations resolved,
   required checks (`Typecheck, test, build`, `Dependency review`,
-  `Secret scan`, CodeQL), no force pushes or deletions. Administrators are
-  not exempt from the required checks.
+  `Secret scan`, CodeQL), no force pushes or deletions. Because there is a
+  single maintainer who cannot approve their own pull requests, administrators
+  may bypass the review requirement; the checks still run on every pull
+  request and CodeQL and secret scanning report to the Security tab.
 - Secret scanning with push protection, Dependabot alerts and security
   updates, and private vulnerability reporting are enabled.
 - Default `GITHUB_TOKEN` permissions are read-only; workflows request only
