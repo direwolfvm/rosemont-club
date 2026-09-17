@@ -1,0 +1,15 @@
+# Rosemont residency boundary
+
+The active boundary is `data/rosemont-boundary.json`. It comes from the file `rosemont_boundary.geojson` supplied by the project owner on September 17, 2026. This is the Club's chosen community boundary; we do not claim that it is an official City neighborhood boundary.
+
+The source was a CRS84 longitude/latitude FeatureCollection containing one MultiPolygon with 26 coordinate positions. Bounds: longitude -77.0740207155981 to -77.05487178013755; latitude 38.80687010252591 to 38.81980448919682. We retained the polygon geometry, removed altitude coordinates (unused for point-in-polygon), and replaced incidental GIS metadata, including a local Windows file path, with explicit provenance. No resident data is included.
+
+Version: `user-supplied-rosemont-2026-09-17` in `lib/residency.ts`. The homepage and About page draw this same outline. The background grid is decorative, not a street map.
+
+Initially researched alternative: [City of Alexandria Historic District GIS layer](https://geoportal.alexandriava.gov/server/rest/services/Historic_District/MapServer/0), queried with `DISTRICT = 'Rosemont'`, exported as WGS84 GeoJSON. The historic district is narrower than the neighborhood; the owner's supplied polygon replaces that initial alternative entirely.
+
+Verification: an authenticated user submits an address in a POST body, the server calls the [U.S. Census Geocoding Services](https://geocoding.geo.census.gov/geocoder/), requires one match with Alexandria, Virginia address components, then evaluates the resulting coordinates with Turf point-in-polygon (including MultiPolygon support). The server persists only the resident boolean, verification timestamp, and method/version. The original address, matched address, and coordinates are not persisted or logged. Failed provider requests are sanitized before reporting errors. The provider necessarily receives the address, which the form discloses.
+
+This verifies whether a supplied address is in the boundary; it does not prove occupancy, leasehold, ownership, or identity. A resident may request manual review without submitting their address to the volunteer inbox. Administrators can mark verified/unverified; that action receives an audit entry and a manual verification method.
+
+To replace the boundary, substitute a reviewed WGS84 Polygon/MultiPolygon FeatureCollection in the data file, update the version constant, update these provenance notes, add representative inside/outside tests, and redeploy. Existing verified users retain their status until reviewed or reverified; replacing the polygon does not silently reclassify everyone.
