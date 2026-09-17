@@ -1,0 +1,40 @@
+# Static analysis of the TypeScript application and the Python operations
+# scripts. Results appear under Security > Code scanning. Public repositories
+# receive code scanning results for pull requests from forks as well.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, python]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+      - uses: github/codeql-action/analyze@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        with:
+          category: /language:${{ matrix.language }}
