@@ -38,9 +38,10 @@ for name in mail_secrets:
 print('Existing Rosemont Mailgun secret values preserved.')
 # Native iOS client: register the Firebase iOS app once and publish its public values through /api/config.
 ios_apps=call('https://firebase.googleapis.com/v1beta1/projects/'+PROJECT+'/iosApps').get('apps',[])
-ios=next((a for a in ios_apps if a.get('bundleId')=='club.rosemont.ios'),None)
+IOS_BUNDLE='com.rosemont.rosemontclub'  # App Store Connect bundle ID; club.rosemont.ios was the development ID
+ios=next((a for a in ios_apps if a.get('bundleId')==IOS_BUNDLE),None)
 if ios is None:
- call('https://firebase.googleapis.com/v1beta1/projects/'+PROJECT+'/iosApps','POST',{'bundleId':'club.rosemont.ios','displayName':'Rosemont Club iOS'})
+ call('https://firebase.googleapis.com/v1beta1/projects/'+PROJECT+'/iosApps','POST',{'bundleId':IOS_BUNDLE,'displayName':'Rosemont Club iOS (App Store)'})
  print('Registered the Firebase iOS app; rerun once the operation completes to publish its values.')
  ios_cfg={}
 else:

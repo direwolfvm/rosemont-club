@@ -149,14 +149,20 @@ async function handle(
     // Apple Team ID is configured; until then the file does not exist.
     const team = process.env.APPLE_TEAM_ID;
     if (!team) throw new HttpError(404, "Not found.");
-    const appId = team + ".club.rosemont.ios";
+    // App Store Connect assigned com.rosemont.rosemontclub; the earlier
+    // club.rosemont.ios stays listed while development builds still use it.
+    const bundles = (process.env.APPLE_BUNDLE_IDS || "com.rosemont.rosemontclub")
+      .split(",")
+      .map((b) => b.trim())
+      .filter(Boolean);
+    const appIds = bundles.map((b) => team + "." + b);
     return NextResponse.json(
       {
         applinks: {
           apps: [],
           details: [
             {
-              appIDs: [appId],
+              appIDs: appIds,
               components: [
                 { "/": "/groups/*" },
                 { "/": "/events/*" },
@@ -171,7 +177,7 @@ async function handle(
             },
           ],
         },
-        webcredentials: { apps: [appId] },
+        webcredentials: { apps: appIds },
       },
       {
         headers: {

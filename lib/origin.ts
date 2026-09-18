@@ -5,7 +5,7 @@ export function allowedOrigin(
   additionalOrigins = "",
 ) {
   // No Origin header means a non-browser client. The native iOS app
-  // (bundle club.rosemont.ios) sends none and relies on this being allowed;
+  // (bundle com.rosemont.rosemontclub) sends none and relies on this being allowed;
   // it authenticates with a bearer token, so ambient-cookie CSRF does not
   // apply. Do not reject missing origins without a coordinated client header.
   if (!origin) return true;
