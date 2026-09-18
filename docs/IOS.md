@@ -55,6 +55,13 @@ Enabled on tenant `alex311-qfnem` on September 22, 2026 (`defaultSupportedIdpCon
 ## Account deletion
 
 `POST /api/me/delete` (JSON body `{}`) or `DELETE /api/me`, bearer token required, rate limited. It deletes the member's profile, follows, RSVPs (correcting capacity counters), poll responses, and any remembered address; anonymizes their messages to the volunteers (`userId: "deleted"`); releases ownership of listings without deleting them; audits `account-delete`; and returns `{ ok, identityDeleted, releasedListings }`. The runtime service account deliberately has no Firebase account-write privilege, so `identityDeleted` is `false` and the client deletes the Firebase identity itself (`accounts:delete` in the app, `deleteUser` on the website). The last active administrator is refused with 403 and a clear message. Deleting the identity also removes the Alex311 Reborn sign-in; both clients say so before confirming. The website offers the same action on the profile page.
+## Google consent screen
+
+The OAuth brand is shared by every app in the `permitting-ai-helper` project,
+so Google's sign-in sheet reads "Herbert Industries Applications" with the
+homepage `jordaneccl.es`, on the web and in the app alike. It cannot be
+per-app without a separate Google Cloud project. The privacy and support
+pages tell neighbors to expect it.
 
 ## App Store pages
 
