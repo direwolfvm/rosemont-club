@@ -17,6 +17,17 @@ test("custom and configured fallback origins work behind Cloud Run's proxy", () 
     assert.equal(allowedOrigin(origin, internal, primary, fallback), false);
 });
 
+test("a request with no Origin header is allowed (the native iOS client sends none)", () => {
+  assert.equal(
+    allowedOrigin(null, "http://localhost:8080/api/feedback", "https://rosemont.club"),
+    true,
+  );
+  assert.equal(
+    allowedOrigin("", "http://localhost:8080/api/feedback", "https://rosemont.club"),
+    true,
+  );
+});
+
 test("local development works without configured origins", () => {
   assert.equal(
     allowedOrigin(

@@ -1,0 +1,15 @@
+# Secret-scanning configuration for the CI "Secret scan" job.
+title = "The Rosemont Club"
+
+[extend]
+useDefault = true
+
+# Firebase client API keys are public identifiers that ship to every browser
+# and app; they are not credentials. Only the two known public keys for this
+# project are allowed, so any other key that appears is still reported.
+[allowlist]
+description = "Public Firebase client keys (web and iOS) for permitting-ai-helper"
+regexes = [
+  '''AIzaSyDO7YTX1BF7joEJvTeZsbI0c4kAaINFhC0''',
+  '''AIzaSyATF0AOZCgT6VcQsxJFV5vs7dyCSINZmSc''',
+]

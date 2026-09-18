@@ -325,6 +325,24 @@ export const seeds: Entity[] = [
   }),
   make({
     kind: "content",
+    name: "Privacy",
+    slug: "privacy-policy",
+    summary:
+      "What The Rosemont Club website and iOS app collect, why, and what we do with it. Last updated September 18, 2026.",
+    description:
+      "Who we are. The Rosemont Club is a volunteer-run civil association of neighbors in Rosemont, Alexandria, Virginia. This policy covers rosemont.club and the Rosemont Club iOS app, which use the same accounts and the same servers.\n\nYour account. Signing in uses Google’s Firebase Identity Platform, shared with Alex311 Reborn (one account works for both). We keep your email address, display name, an optional short bio, and your Club roles (for example administrator, verified resident). There is no public member directory; your email is shown only to administrators and, if you write to a group’s organizers through the site, to them as a reply address.\n\nResidency check. When you verify residency, the address you type is sent to the U.S. Census Bureau’s geocoder to find its location. By default we keep only the result: whether the address is inside the Club boundary, when the check happened, which block groups it qualified you for, and the method used. The address and coordinates are not stored or logged. If you choose “remember my address,” we keep an encrypted copy of the geocoded result (street, first address line, and coordinates) so block-group eligibility can be re-checked when groups change. It is stored under a server-side key, is never shown to anyone including administrators, and you can delete it from your profile at any time.\n\nParticipation. We record which groups you follow or request to join, which events you RSVP to, and your responses to quick polls. Poll results are shown only as totals; individual responses are never shown to other members. Group organizers can see the display names of people who follow or request their group, not their email addresses.\n\nMessages. Ideas sent to the volunteers and messages sent to group organizers through the site are stored so a volunteer can read and answer them. Email we send (for example a relayed message or a password reset) goes through Mailgun with open and click tracking turned off.\n\nWhat we log. Administrative and content changes are recorded with the account that made them, the action, and the time, without addresses or message bodies. Rate-limit counters use hashed identifiers. We don’t use analytics or advertising trackers.\n\nOn your device. The website keeps your sign-in session in your browser’s storage. The iOS app keeps its sign-in token in the iOS Keychain and can protect it with Face ID or Touch ID; that biometric check happens entirely on your device, and no biometric data is sent to us.\n\nThird parties. Google Cloud and Firebase host the site, the database, and sign-in. The U.S. Census Bureau geocodes addresses during residency checks. Mailgun sends email. Group organizers who draw an eligibility area use OpenStreetMap map tiles in the editor. When a group publishes a calendar, our server fetches it from that calendar’s provider. Links to other sites are governed by those sites’ policies.\n\nChildren. The site and app are for adults and are not directed to children under 13.\n\nYour choices. You can edit your profile, delete a remembered address, unfollow groups, and withdraw RSVPs yourself. To close your Club account or ask about your data, send a note to the volunteers from the Community questions page. Closing a Club account does not close your shared Firebase account, which is also used by Alex311 Reborn.\n\nChanges. We’ll update this page when something changes and note the date above.",
+  }),
+  make({
+    kind: "content",
+    name: "Support",
+    slug: "support",
+    summary:
+      "How to get help with the website, the iOS app, or a group.",
+    description:
+      "Problems with the site or the app. Sign in and send a note to the volunteers from the Community questions page. Include what you were doing, what you expected, and what happened; screenshots help. Volunteers answer as time allows, usually within a few days.\n\nQuestions about a group or event. Every group page has a contact button or a listed channel. Group organizers look after their own pages; site volunteers can help if you can’t reach them.\n\nSigning in. One account works for both The Rosemont Club and Alex311 Reborn. If you signed up with Google and want to use the iOS app, use “Forgot password?” to set a password for the same email. Verification and password-reset emails come from a noreply address; check your spam folder.\n\nResidency. If the address check doesn’t recognize your address, try the full street address with ZIP code, or request volunteer review from your profile. Please don’t send your address through the feedback form.\n\nSecurity or privacy concerns. Please report them privately at github.com/direwolfvm/rosemont-club/security rather than in a public place. Our privacy policy is at rosemont.club/privacy.\n\nBugs and suggestions for the software. The site is open source at github.com/direwolfvm/rosemont-club; issues and pull requests are welcome.",
+  }),
+  make({
+    kind: "content",
     name: "On the website",
     slug: "guidelines-site",
     summary:
@@ -346,7 +364,7 @@ export const seeds: Entity[] = [
     name: "Welcome to the Rosemont Club",
     slug: "home-intro",
     summary:
-      "Live in Rosemont? You're already in the Club. Use this site to find neighborhood groups, see what's coming up, look up local resources, and weigh in on community questions.",
+      "Live in Rosemont? You're already in the Club. Find neighborhood groups, see what's coming up, look up local resources, and weigh in on community questions.",
   }),
   make({
     kind: "content",

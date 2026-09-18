@@ -49,6 +49,8 @@ const labels: Record<string, string> = {
   about: "About",
   guidelines: "Community guidelines",
   following: "Following",
+  privacy: "Privacy",
+  support: "Support",
   polls: "Quick polls",
   consultations: "Consultations",
   content: "Site content",
@@ -1564,7 +1566,31 @@ export default function Club({ path }: { path: string[] }) {
         )}
       </>
     );
-  else if (section === "guidelines")
+  else if (section === "privacy" || section === "support") {
+    const slug = section === "privacy" ? "privacy-policy" : "support";
+    content = (
+      <>
+        <PageHeading
+          eyebrow={section === "privacy" ? "Privacy" : "Support"}
+          title={find(slug)?.name || labels[section]}
+          text={find(slug)?.summary || ""}
+        />
+        <div className="prose guidelines">
+          <article>
+            <Paragraphs text={find(slug)?.description} />
+            {user?.admin && (
+              <button
+                className="text-button"
+                onClick={() => setEditing({ entity: find(slug), kind: "content" })}
+              >
+                Edit page
+              </button>
+            )}
+          </article>
+        </div>
+      </>
+    );
+  } else if (section === "guidelines")
     content = (
       <>
         <PageHeading
@@ -1796,6 +1822,8 @@ export default function Club({ path }: { path: string[] }) {
             <Link href="/about">About the Club</Link>
             <Link href="/guidelines">Community guidelines</Link>
             <Link href="/governance">Volunteer & ideas</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/support">Support</Link>
             <Link href="/profile">Your privacy & residency</Link>
           </div>
         </div>
