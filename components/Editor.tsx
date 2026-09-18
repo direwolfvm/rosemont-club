@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Entity, Member } from "@/lib/schema";
 import { entitySchema } from "@/lib/schema";
 import { api } from "./client";
+import PolygonMap from "./PolygonMap";
 export default function Editor({
   entity,
   kind,
@@ -20,7 +21,8 @@ export default function Editor({
 }) {
   const [form, setForm] = useState<Record<string, any>>(() =>
     entity
-      ? { ...entity }
+      ? // Older records may predate newer optional fields; fill their defaults.
+        { ...entity, ...entitySchema.parse(entity) }
       : {
           ...entitySchema.parse({
             kind: kind === "events" ? "groups" : kind,
@@ -37,22 +39,31 @@ export default function Editor({
         },
   );
   const [error, setError] = useState(""),
-    [saving, setSaving] = useState(false);
+    [saving, setSaving] = useState(false),
+    [testAddress, setTestAddress] = useState(""),
+    [testResult, setTestResult] = useState(""),
+    [testing, setTesting] = useState(false);
   const change = (key: string, value: unknown) =>
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f) =>
+      key === "eligibilityNote"
+        ? { ...f, eligibility: { ...f.eligibility, note: value } }
+        : { ...f, [key]: value },
+    );
+  const read = (key: string) =>
+    key === "eligibilityNote" ? form.eligibility?.note : form[key];
   const field = (key: string, label: string, type = "text", help?: string) => (
     <label key={key}>
       {label}
       {type === "textarea" ? (
         <textarea
           rows={5}
-          value={form[key] || ""}
+          value={read(key) || ""}
           onChange={(e) => change(key, e.target.value)}
         />
       ) : (
         <input
           type={type}
-          value={form[key] ?? ""}
+          value={read(key) ?? ""}
           onChange={(e) =>
             change(
               key,
@@ -176,6 +187,10 @@ export default function Editor({
               {field("image", "Image URL", "url")}
               {field("imageAlt", "Image description for accessibility")}
             </div>
+            {checked(
+              "contactRelay",
+              "Hide the contact email. Neighbors write through a form on the page and the message is relayed by email (to the contact email, or to the owners if none is set).",
+            )}
           </>
         )}
         {user.admin && checked("featured", "Feature on the homepage")}
@@ -189,6 +204,12 @@ export default function Editor({
             ])}
             {field("scope", "Geographic scope")}
             {field("joinInstructions", "How to join", "textarea")}
+            {field(
+              "calendarUrl",
+              "Published calendar (.ics address)",
+              "url",
+              "A public iCalendar feed, such as the “Public address in iCal format” from Google Calendar settings. Upcoming events from it are shown on the group page with subscribe links.",
+            )}
             {form.channels.map((c: any, i: number) => (
               <div className="subform" key={i}>
                 <div className="form-grid">
@@ -210,6 +231,7 @@ export default function Editor({
                         "Email",
                         "Signal",
                         "Discord",
+                        "Instagram",
                         "Website",
                         "Facebook",
                         "Other",
@@ -286,6 +308,140 @@ export default function Editor({
             >
               Add communication channel
             </button>
+          </fieldset>
+        )}
+        {kind === "groups" && (
+          <fieldset>
+            <legend>Who can see this group</legend>
+            <label>
+              Eligibility rule
+              <select
+                value={form.eligibility.mode}
+                onChange={(e) =>
+                  change("eligibility", {
+                    ...form.eligibility,
+                    mode: e.target.value,
+                  })
+                }
+              >
+                <option value="club">Club residency (the audience above)</option>
+                <option value="custom">
+                  Custom: only addresses on listed streets, in the address list, or inside a drawn area
+                </option>
+              </select>
+              <small>
+                A custom rule applies on top of residents-only visibility. Neighbors
+                whose verified address matches see the group automatically; anyone
+                an owner approves through a join request also sees it. Addresses are
+                checked at verification time and never stored.
+              </small>
+            </label>
+            {form.eligibility.mode === "custom" && (
+              <>
+                {field(
+                  "eligibilityNote",
+                  "Shown to neighbors who don’t qualify (for example “Households on West Oak Street”)",
+                )}
+                <div className="form-grid">
+                  <label>
+                    Streets (one per line)
+                    <textarea
+                      rows={4}
+                      value={form.eligibility.streets.join("\n")}
+                      onChange={(e) =>
+                        change("eligibility", {
+                          ...form.eligibility,
+                          streets: e.target.value.split("\n").filter(Boolean),
+                        })
+                      }
+                    />
+                    <small>
+                      Any house on the street qualifies. Write them the way the
+                      post office does, e.g. “W Oak St”; “West Oak Street” also
+                      works.
+                    </small>
+                  </label>
+                  <label>
+                    Specific addresses (one per line)
+                    <textarea
+                      rows={4}
+                      value={form.eligibility.addresses.join("\n")}
+                      onChange={(e) =>
+                        change("eligibility", {
+                          ...form.eligibility,
+                          addresses: e.target.value.split("\n").filter(Boolean),
+                        })
+                      }
+                    />
+                    <small>
+                      Street address only, e.g. “12 W Oak St”. Visible to owners
+                      and administrators only.
+                    </small>
+                  </label>
+                </div>
+                <h3>Or draw the area</h3>
+                <PolygonMap
+                  points={form.eligibility.polygon}
+                  onChange={(polygon) =>
+                    change("eligibility", { ...form.eligibility, polygon })
+                  }
+                />
+                {entity ? (
+                  <div className="subform">
+                    <label>
+                      Test an address against this rule
+                      <input
+                        autoComplete="off"
+                        placeholder="Street address, Alexandria, VA"
+                        value={testAddress}
+                        onChange={(e) => setTestAddress(e.target.value)}
+                      />
+                      <small>
+                        Save first; the check uses the saved rule. The address
+                        is geocoded and discarded.
+                      </small>
+                    </label>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={testing || testAddress.trim().length < 8}
+                      onClick={async () => {
+                        setTesting(true);
+                        setTestResult("");
+                        try {
+                          const r = await api(
+                            "entities/" + entity.id + "/eligibility-check",
+                            "POST",
+                            { address: testAddress },
+                          );
+                          setTestAddress("");
+                          setTestResult(
+                            !r.matched
+                              ? "The geocoder could not match that address."
+                              : `${r.eligible ? "Qualifies" : "Does not qualify"} under the saved rule. Street as the geocoder reads it: ${r.street || "unknown"}. ${r.resident ? "Inside" : "Outside"} the Club boundary.`,
+                          );
+                        } catch (e) {
+                          setTestResult((e as Error).message);
+                        } finally {
+                          setTesting(false);
+                        }
+                      }}
+                    >
+                      {testing ? "Checking…" : "Check address"}
+                    </button>
+                    {testResult && (
+                      <p className="notice eligibility-result" role="status">
+                        {testResult}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="muted">
+                    After saving, you can test addresses against the rule here.
+                  </p>
+                )}
+              </>
+            )}
           </fieldset>
         )}
         {kind === "resources" && (

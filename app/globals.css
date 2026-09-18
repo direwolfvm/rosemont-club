@@ -2192,3 +2192,117 @@ dialog form {
     transition: none;
   }
 }
+
+/* Group communication channels, external calendars, contact relay, and the eligibility area editor. */
+.channel-icon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--mist);
+  color: var(--blue);
+  flex-shrink: 0;
+}
+.channel-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.channel-icon.whatsapp {
+  background: #e3f5e8;
+  color: #1f8a4c;
+}
+.channel-icon.instagram {
+  background: #fbe7ef;
+  color: #b5286d;
+}
+.channel-icon.email {
+  background: var(--resources-soft);
+  color: var(--resources);
+}
+.channel-icon.facebook {
+  background: #e5ecf9;
+  color: #2456a8;
+}
+.card-channels {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 8px;
+}
+.card-channels .channel-icon {
+  width: 24px;
+  height: 24px;
+}
+.card-channels .channel-icon svg {
+  width: 13px;
+  height: 13px;
+}
+.feed-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+.feed-list li {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.feed-list time {
+  color: var(--events);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.feed-list small {
+  display: block;
+}
+.feed-actions {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.feed-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.contact-form textarea {
+  min-height: 110px;
+}
+.polygon-editor {
+  margin: 12px 0 20px;
+}
+.polygon-map {
+  height: 380px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--mist);
+  z-index: 0;
+}
+.polygon-editor .actions {
+  margin-top: 10px;
+  gap: 14px;
+}
+.polygon-editor small {
+  flex-basis: 100%;
+}
+.eligibility-result {
+  margin-top: 10px;
+}
+@media (max-width: 760px) {
+  .feed-list li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .polygon-map {
+    height: 300px;
+  }
+}

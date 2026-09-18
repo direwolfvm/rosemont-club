@@ -19,13 +19,172 @@ export const seeds: Entity[] = [
     featured: true,
     membership: "open",
     joinInstructions:
-      "Follow the group here to keep it in your profile. The WhatsApp invitation will appear here when the organizers have added it.",
+      "Follow the group here to keep it in your profile, then join the WhatsApp group with the invitation below. The invitation is shown to verified residents.",
     channels: [
       {
         type: "WhatsApp",
         label: "Rosemont Neighbors on WhatsApp",
+        url: "https://chat.whatsapp.com/KtTW2Jwgm952ciVogXTDA4",
         instructions:
-          "Our organizers are setting up the invitation. Please check back soon.",
+          "Open the invitation on your phone to join. Please keep the link within the neighborhood.",
+        visibility: "residents",
+      },
+    ],
+  }),
+  make({
+    kind: "groups",
+    name: "Brooks Bike Bus",
+    slug: "brooks-bike-bus",
+    summary:
+      "A group bike ride to Naomi L. Brooks Elementary every Friday morning during the school year.",
+    description:
+      "Families ride together to school on Friday mornings, with adult marshals leading and sweeping each route. Three color-coded routes converge on Brooks by 7:55 a.m. Kids on bikes, scooters, and balance bikes are welcome, as are strollers and adults on foot.\n\nBike Bus procedures:\n• The Bike Bus runs on a schedule, so please arrive on time.\n• One marshal leads the group and a second serves as sweeper. Riders may not pass the leader.\n• Parents are responsible for their children’s safety; marshals will assist with first aid and basic bike repairs if needed.\n• Obey traffic laws, use hand signals, and pass others courteously.\n• Slower riders, joggers, walkers, and young riders should stay to the right to allow passing.\n• If Red or Blue Line riders become separated, regroup at Commonwealth and Oak and continue the route following the crossing guard and traffic signals.",
+    website: "https://www.instagram.com/brooksbikebus/",
+    membership: "open",
+    joinInstructions:
+      "Follow @brooksbikebus on Instagram for route maps and announcements, and join the WhatsApp group for weekly updates and your route’s departure time.",
+    channels: [
+      {
+        type: "Instagram",
+        label: "@brooksbikebus",
+        url: "https://www.instagram.com/brooksbikebus/",
+        instructions: "Route maps, photos, and announcements.",
+        visibility: "public",
+      },
+      {
+        type: "WhatsApp",
+        label: "Brooks Bike Bus on WhatsApp",
+        url: "https://chat.whatsapp.com/HSIU0Ym8sm1GmCo1lszDDf",
+        instructions:
+          "Weekly updates, weather calls, and departure times for each route.",
+        visibility: "public",
+      },
+    ],
+  }),
+  make({
+    kind: "events",
+    name: "Brooks Bike Bus",
+    slug: "brooks-bike-bus-friday",
+    summary: "Ride to school together. Fridays during the school year.",
+    description:
+      "The weekly Bike Bus to Naomi L. Brooks Elementary. Routes leave from their starting points at staggered times and arrive at Brooks by 7:55 a.m. Check the WhatsApp group for your route’s departure time and for weather cancellations. There is no Bike Bus on days when school is closed.",
+    start: "2026-09-04T07:30",
+    location: "Naomi L. Brooks Elementary School",
+    streetAddress: "600 Russell Rd, Alexandria, VA 22301",
+    website: "https://www.instagram.com/brooksbikebus/",
+    groupId: "groups-brooks-bike-bus",
+    recurrence: {
+      frequency: "weekly",
+      interval: 1,
+      weekday: 4,
+      nth: 1,
+      months: [9, 10, 11, 12, 1, 2, 3, 4, 5, 6],
+      until: "",
+    },
+    notes:
+      "The 7:30 a.m. start is approximate: each route has its own departure time. Organizers can adjust this listing.",
+  }),
+  make({
+    kind: "groups",
+    name: "Brooks PTA",
+    slug: "brooks-pta",
+    summary:
+      "The parent-teacher association for Naomi L. Brooks Elementary School.",
+    description:
+      "The Brooks PTA funds field trips, classroom supplies, and school events, and runs the Back to School Picnic, Fall Festival, movie nights, the Fun Run, and more. Membership is open to families and community members; members can vote at PTA meetings.\n\nThe PTA publishes its calendar of school and PTA events, which appears below and can be added to your own calendar.",
+    website: "https://brookspta.org/",
+    membership: "follow",
+    joinInstructions:
+      "Join or renew your membership on the PTA website. Following the group here keeps it in your profile and does not make you a PTA member.",
+    calendarUrl:
+      "https://calendar.google.com/calendar/ical/president%40brookspta.org/public/basic.ics",
+    channels: [
+      {
+        type: "Website",
+        label: "Join or renew your PTA membership",
+        url: "https://brookspta.org/joinpta/",
+        instructions: "Online through Givebacks, or by check or cash at the school.",
+        visibility: "public",
+      },
+      {
+        type: "Website",
+        label: "Contact the PTA",
+        url: "https://brookspta.org/about/contact/",
+        instructions: "",
+        visibility: "public",
+      },
+    ],
+  }),
+  make({
+    kind: "groups",
+    name: "Friday Pizza at Blue Park",
+    slug: "friday-pizza",
+    summary:
+      "Parents and kids who meet at Blue Park for pizza on nice Fridays, spring through fall.",
+    description:
+      "An informal Friday evening get-together at Blue Park for neighborhood families. One or more families volunteer to order the pizza, and other parents bring drinks, sides, or dessert. Whether it happens on a given Friday depends on the weather and who is around, so the WhatsApp group is where the plan comes together.",
+    visibility: "residents",
+    membership: "open",
+    joinInstructions:
+      "Follow the group here, then ask for the WhatsApp invitation through the contact button on this page. The invitation is shared with verified residents.",
+    contactRelay: true,
+    channels: [
+      {
+        type: "WhatsApp",
+        label: "Friday Pizza on WhatsApp",
+        instructions:
+          "The organizers share the invitation directly. Use the contact button on this page to ask for it.",
+        visibility: "residents",
+      },
+    ],
+  }),
+  make({
+    kind: "events",
+    name: "Friday Pizza Night",
+    slug: "friday-pizza-night",
+    summary: "Pizza at Blue Park on nice Fridays, spring through fall.",
+    description:
+      "Bring the kids and something to share. A volunteer family orders the pizza; others bring drinks, sides, or dessert. Check the WhatsApp group to see whether it’s on this week and when people are heading over.",
+    visibility: "residents",
+    start: "2026-04-03T17:30",
+    location: "Blue Park",
+    groupId: "groups-friday-pizza",
+    recurrence: {
+      frequency: "weekly",
+      interval: 1,
+      weekday: 4,
+      nth: 1,
+      months: [4, 5, 6, 7, 8, 9, 10],
+      until: "",
+    },
+    notes:
+      "The 5:30 p.m. time is a placeholder. Organizers can adjust the time and cancel individual Fridays from the editor.",
+  }),
+  make({
+    kind: "groups",
+    name: "W Oak Street Neighbors",
+    slug: "w-oak-street",
+    summary: "The block email list for households on West Oak Street.",
+    description:
+      "A block group for neighbors on West Oak Street: the email list is where the block shares news, asks for a hand, and organizes the occasional get-together.\n\nThis group uses an address rule that is tighter than Club residency: the list details are shown to verified residents whose address is on West Oak Street, and to neighbors an organizer has approved.",
+    visibility: "residents",
+    membership: "request",
+    contactRelay: true,
+    joinInstructions:
+      "Verify your address from your profile. If it is on West Oak Street you will see the list details here right away; otherwise request to join and an organizer will take a look.",
+    eligibility: {
+      mode: "custom",
+      streets: ["W Oak St"],
+      addresses: [],
+      polygon: [],
+      note: "Households on West Oak Street",
+    },
+    channels: [
+      {
+        type: "Email",
+        label: "W Oak Street email list",
+        instructions:
+          "The organizers add approved neighbors to the list. Use the contact button on this page to ask.",
         visibility: "residents",
       },
     ],
@@ -101,6 +260,68 @@ export const seeds: Entity[] = [
     website: "https://www.rosemontcitizens.org/history",
     audienceTags: ["Anyone", "New resident"],
     topicTags: ["Local organizations", "Something to do"],
+  }),
+  ...(
+    [
+      ["Rosemont Citizens Association", "rosemont-citizens-association", "The neighborhood civic association: meetings, newsletter, land use, and history.", "https://www.rosemontcitizens.org/", ["Anyone", "New resident"], ["Local organizations", "Civic participation"]],
+      ["RCA email list", "rca-email-list", "Announcements from the Rosemont Citizens Association on groups.io.", "https://groups.io/g/RCA", ["Anyone", "New resident"], ["Local organizations", "News & information"]],
+      ["Rosemont contacts and resources (RCA)", "rca-contacts", "The RCA’s longer list of local contacts, businesses, and services.", "https://www.rosemontcitizens.org/rosemont-contacts", ["Anyone", "New resident"], ["Contact information", "Neighborhood services"]],
+      ["Alexandria Renew Enterprises", "alexrenew", "Sewer and wastewater service.", "https://alexrenew.com/", ["New resident", "Homeowner", "Renter"], ["Utilities"]],
+      ["Virginia American Water", "virginia-american-water", "Water service and billing.", "https://www.amwater.com/vaaw/", ["New resident", "Homeowner", "Renter"], ["Utilities"]],
+      ["Dominion Energy", "dominion-energy", "Electric service and outage reporting.", "https://www.dominionenergy.com/virginia", ["New resident", "Homeowner", "Renter"], ["Utilities"]],
+      ["Washington Gas", "washington-gas", "Natural gas service. Call 911 and then Washington Gas if you smell gas.", "https://www.washingtongas.com/", ["New resident", "Homeowner", "Renter"], ["Utilities", "Safety"]],
+      ["Xfinity", "xfinity", "Cable internet and television.", "https://www.xfinity.com/", ["New resident", "Homeowner", "Renter"], ["Utilities"]],
+      ["Verizon", "verizon", "Fios internet, television, and phone.", "https://www.verizon.com/", ["New resident", "Homeowner", "Renter"], ["Utilities"]],
+      ["Naomi L. Brooks Elementary School", "naomi-brooks-elementary", "Rosemont’s neighborhood elementary school (ACPS).", "https://nlb.acps.k12.va.us/", ["Family with children", "Parent", "New resident"], ["Schools"]],
+      ["George Washington Middle School", "gw-middle-school", "The ACPS middle school serving Rosemont.", "https://gw.acps.k12.va.us/", ["Family with children", "Parent", "New resident"], ["Schools"]],
+      ["Alexandria City High School", "alexandria-city-high-school", "The city’s public high school.", "https://achs.acps.k12.va.us/", ["Family with children", "Parent", "New resident"], ["Schools"]],
+      ["Alexandria School Board", "alexandria-school-board", "Meetings, members, and policies for Alexandria City Public Schools.", "https://www.acps.k12.va.us/board", ["Parent", "Anyone"], ["Schools", "Civic participation"]],
+      ["Beach Park", "beach-park", "Neighborhood park with a playground.", "https://www.alexandriava.gov/parks/location/beach-park", ["Anyone", "Family with children", "Pet owner"], ["Parks"]],
+      ["Hooff’s Run Park and Greenway", "hooffs-run-park", "Greenway trail and park along Hooff’s Run.", "https://www.alexandriava.gov/parks/location/hooffs-run-park-greenway", ["Anyone", "Cyclist", "Pet owner"], ["Parks", "Transportation"]],
+      ["Sunset Mini Park", "sunset-mini-park", "Small neighborhood park.", "https://www.alexandriava.gov/parks/location/sunset-mini-park", ["Anyone", "Family with children"], ["Parks"]],
+      ["Commonwealth Avenue and Braddock Road park", "commonwealth-braddock-park", "The green at Commonwealth Avenue and Braddock Road.", "https://www.alexandriava.gov/parks/location/braddock-rd-commonwealth", ["Anyone"], ["Parks"]],
+      ["Alexandria City Council", "alexandria-city-council", "Council members, meeting schedules, agendas, and how to speak at a meeting.", "https://www.alexandriava.gov/Council", ["Anyone"], ["City services", "Civic participation", "Elected officials"]],
+      ["Alexandria Police Department", "alexandria-police", "Non-emergency contacts, reporting, and community programs. Call 911 in an emergency.", "https://www.alexandriava.gov/Police", ["Anyone", "New resident"], ["Safety", "City services"]],
+      ["Transportation and Environmental Services", "alexandria-tes", "Streets, trash and recycling, parking, stormwater, and traffic.", "https://www.alexandriava.gov/tes", ["Anyone", "Homeowner", "Renter", "Cyclist"], ["City services", "Transportation", "Neighborhood services"]],
+      ["Voter Registration and Elections", "alexandria-elections", "Register to vote, find your polling place, and see what’s on the ballot.", "https://www.alexandriava.gov/Elections", ["Anyone", "New resident"], ["Civic participation", "Elected officials"]],
+      ["Find your Virginia legislators", "virginia-legislators", "Look up your state senator and delegate by address.", "https://whosmy.virginiageneralassembly.gov/", ["Anyone"], ["Elected officials", "Civic participation"]],
+      ["U.S. Representative Don Beyer", "rep-don-beyer", "Virginia’s 8th District office, casework, and constituent services.", "https://beyer.house.gov/", ["Anyone"], ["Elected officials"]],
+      ["Alexandria eNews", "alexandria-enews", "Official City email newsletters and alerts.", "https://enews.alexandriava.gov/", ["Anyone", "New resident"], ["News & information", "City services"]],
+      ["Alexandria Times", "alexandria-times", "Weekly local newspaper.", "https://alextimes.com/", ["Anyone"], ["News & information"]],
+      ["ALXnow", "alxnow", "Daily local news site.", "https://www.alxnow.com/", ["Anyone"], ["News & information"]],
+      ["The Zebra", "the-zebra", "Community news and events magazine.", "https://thezebra.org/", ["Anyone"], ["News & information"]],
+      ["Alexandria Federation of Civic Associations", "alexandria-federation-civic-associations", "The citywide federation of neighborhood civic associations.", "https://alexafca.org/", ["Anyone", "Volunteer"], ["Local organizations", "Civic participation"]],
+      ["Volunteer Alexandria", "volunteer-alexandria", "Find volunteer opportunities across the city.", "https://www.volunteeralexandria.org/", ["Volunteer", "Anyone"], ["Local organizations", "Something to do"]],
+      ["Rosemont Cellar", "rosemont-cellar", "Neighborhood wine shop and bar, and home of the Rosemont Happy Hour.", "https://www.rosemontcellar.com/", ["Anyone"], ["Something to do"]],
+    ] as [string, string, string, string, string[], string[]][]
+  ).map(([name, slug, summary, website, audienceTags, topicTags]) =>
+    make({
+      kind: "resources",
+      name,
+      slug,
+      summary,
+      description: summary,
+      website,
+      audienceTags,
+      topicTags,
+    }),
+  ),
+  make({
+    kind: "polls",
+    name: "Should the Club list advocacy groups in the Groups directory?",
+    slug: "advocacy-groups-in-directory",
+    summary:
+      "A quick poll on whether groups organized around advocacy belong in the community groups directory.",
+    description:
+      "The Rosemont Club itself is not an advocacy organization and does not take positions on behalf of the neighborhood. Some neighbors have asked whether groups that do advocate, for example on traffic, zoning, or schools, should be listed in the Groups directory alongside social and practical groups.\n\nThis is a quick read of neighborhood opinion, not a binding decision. One response per verified resident.",
+    visibility: "residents",
+    options: [
+      "Yes, list them like any other group",
+      "Yes, but clearly labeled as advocacy groups",
+      "No, keep the directory to non-advocacy groups",
+    ],
+    closes: "2026-12-31T23:59:00-05:00",
+    resultsVisibility: "after-vote",
   }),
   make({
     kind: "content",
@@ -193,11 +414,18 @@ export const seeds: Entity[] = [
     "Safety",
     "Homeownership information",
     "Local organizations",
+    "News & information",
+    "Elected officials",
   ].map((name) =>
     make({
       kind: "tags",
       name,
-      slug: "topic-" + name.toLowerCase().replaceAll(" ", "-"),
+      slug:
+        "topic-" +
+        name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, ""),
       scope: "topic",
     }),
   ),

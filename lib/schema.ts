@@ -12,6 +12,7 @@ export const channelSchema = z.object({
     "Email",
     "Signal",
     "Discord",
+    "Instagram",
     "Website",
     "Facebook",
     "Other",
@@ -22,6 +23,24 @@ export const channelSchema = z.object({
   instructions: z.string().max(2000).default(""),
   visibility: visibility.default("residents"),
 });
+/**
+ * Optional, tighter access rule for a group than Club residency alone.
+ * With mode "custom", the protected parts of the group are shown only to
+ * verified residents whose geocoded address matched one of the criteria at
+ * verification time (the address itself is never stored), to members an
+ * owner approved, and to administrators.
+ */
+export const eligibilitySchema = z.object({
+  mode: z.enum(["club", "custom"]).default("club"),
+  streets: z.array(short).max(50).default([]),
+  addresses: z.array(short).max(500).default([]),
+  polygon: z
+    .array(z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]))
+    .max(200)
+    .default([]),
+  note: short.default(""),
+});
+export type Eligibility = z.infer<typeof eligibilitySchema>;
 export const recurrenceSchema = z.object({
   frequency: z
     .enum(["none", "weekly", "monthly", "nth-weekday"])
@@ -66,6 +85,15 @@ export const entitySchema = z
     scope: short.default("Rosemont"),
     joinInstructions: z.string().max(2000).default(""),
     channels: z.array(channelSchema).max(12).default([]),
+    calendarUrl: link.default(""),
+    contactRelay: z.boolean().default(false),
+    eligibility: eligibilitySchema.default({
+      mode: "club",
+      streets: [],
+      addresses: [],
+      polygon: [],
+      note: "",
+    }),
     groupId: z.string().max(100).default(""),
     relatedGroups: z.array(short).max(20).default([]),
     relatedEvents: z.array(short).max(20).default([]),
@@ -145,6 +173,40 @@ export const entitySchema = z
         path: ["closes"],
         message: "Closing must follow opening",
       });
+    if (v.eligibility.mode === "custom") {
+      if (v.kind !== "groups")
+        c.addIssue({
+          code: "custom",
+          path: ["eligibility", "mode"],
+          message: "Only groups can set a custom eligibility rule",
+        });
+      if (v.visibility !== "residents")
+        c.addIssue({
+          code: "custom",
+          path: ["visibility"],
+          message: "Groups with a custom eligibility rule must be residents-only",
+        });
+      if (
+        !v.eligibility.streets.length &&
+        !v.eligibility.addresses.length &&
+        v.eligibility.polygon.length < 3
+      )
+        c.addIssue({
+          code: "custom",
+          path: ["eligibility"],
+          message:
+            "Add at least one street, address, or a drawn area of three or more points",
+        });
+    }
+    if (
+      v.eligibility.polygon.length > 0 &&
+      v.eligibility.polygon.length < 3
+    )
+      c.addIssue({
+        code: "custom",
+        path: ["eligibility", "polygon"],
+        message: "A drawn area needs at least three points",
+      });
     if (v.recurrence.until && !/^\d{4}-\d{2}-\d{2}$/.test(v.recurrence.until))
       c.addIssue({
         code: "custom",
@@ -169,12 +231,17 @@ export type Member = {
   verificationDate?: string;
   verificationMethod?: string;
   reviewRequested?: boolean;
+  /** Groups whose custom eligibility rule the member's address satisfied at verification. */
+  eligibleGroupIds?: string[];
+  /** Groups whose owners approved the member's request to join. */
+  approvedGroupIds?: string[];
   createdAt: string;
 };
 export type Viewer = Member | null;
 export type Card = Partial<Entity> &
   Pick<Entity, "id" | "name" | "slug" | "kind" | "visibility"> & {
     locked?: boolean;
+    eligibilityNote?: string;
   };
 export function canView(audience: string, user: Viewer) {
   return (
@@ -186,6 +253,20 @@ export function canView(audience: string, user: Viewer) {
         (audience === "residents" && user.verifiedResident)))
   );
 }
+/** Audience check plus the group's own eligibility rule, if it has one. */
+export function canViewEntity(
+  e: Pick<Entity, "id" | "visibility"> & { eligibility?: Eligibility },
+  user: Viewer,
+) {
+  if (!canView(e.visibility, user)) return false;
+  if (e.eligibility?.mode !== "custom") return true;
+  return (
+    !!user &&
+    (user.admin ||
+      !!user.eligibleGroupIds?.includes(e.id) ||
+      !!user.approvedGroupIds?.includes(e.id))
+  );
+}
 export function canManage(e: Pick<Entity, "ownerIds">, user: Viewer) {
   return (
     !!user && !user.disabled && (user.admin || e.ownerIds.includes(user.id))
@@ -194,7 +275,7 @@ export function canManage(e: Pick<Entity, "ownerIds">, user: Viewer) {
 export function projectEntity(e: Entity, user: Viewer): Card | null {
   if (e.status === "archived" || e.status === "draft")
     return canManage(e, user) ? e : null;
-  if (!canView(e.visibility, user) && !canManage(e, user))
+  if (!canViewEntity(e, user) && !canManage(e, user))
     return {
       id: e.id,
       name: e.name,
@@ -202,11 +283,26 @@ export function projectEntity(e: Entity, user: Viewer): Card | null {
       kind: e.kind,
       visibility: e.visibility,
       locked: true,
+      ...(e.eligibility?.mode === "custom"
+        ? {
+            eligibilityNote: e.eligibility.note || "neighbors on specific streets",
+            membership: e.membership,
+          }
+        : {}),
     };
+  if (canManage(e, user)) return e;
   return {
     ...e,
-    channels: e.channels.filter(
-      (c) => canView(c.visibility, user) || canManage(e, user),
-    ),
+    channels: e.channels.filter((c) => canView(c.visibility, user)),
+    // Whitelisted streets and addresses are the owners' business only.
+    eligibility: {
+      mode: e.eligibility?.mode || "club",
+      streets: [],
+      addresses: [],
+      polygon: [],
+      note: e.eligibility?.note || "",
+    },
+    // With relay on, readers write through the site instead of seeing the address.
+    contactEmail: e.contactRelay ? "" : e.contactEmail,
   };
 }

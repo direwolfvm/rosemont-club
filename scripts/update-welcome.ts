@@ -6,8 +6,9 @@
  */
 import { db } from "../lib/firebase";
 import { seeds } from "../data/seed";
+import type { Entity } from "../lib/schema";
 
-type Field = "name" | "summary" | "description";
+type Field = keyof Entity;
 const fields: Record<string, Field[]> = {
   "content-home-intro": ["name", "summary"],
   "content-about-club": ["name", "description"],
@@ -17,7 +18,7 @@ const fields: Record<string, Field[]> = {
   "content-about-participation": ["name", "description"],
   "content-about-principles": ["name", "description"],
   "content-governance": ["name", "description"],
-  "groups-rosemont-neighbors": ["summary"],
+  "groups-rosemont-neighbors": ["summary", "joinInstructions", "channels"],
   "events-rosemont-happy-hour": ["summary", "description"],
   "resources-rosemont-history": ["summary"],
 };
@@ -43,7 +44,10 @@ async function main() {
         }
         const patch = Object.fromEntries(
           keys
-            .filter((key) => snapshot.get(key) !== seed[key])
+            .filter(
+              (key) =>
+                JSON.stringify(snapshot.get(key)) !== JSON.stringify(seed[key]),
+            )
             .map((key) => [key, seed[key]]),
         );
         return { ref, patch };

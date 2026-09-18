@@ -1,4 +1,9 @@
-export async function sendMail(to: string, subject: string, text: string) {
+export async function sendMail(
+  to: string,
+  subject: string,
+  text: string,
+  options: { replyTo?: string } = {},
+) {
   const {
     MAILGUN_API_KEY: key,
     MAILGUN_DOMAIN: domain,
@@ -13,6 +18,7 @@ export async function sendMail(to: string, subject: string, text: string) {
     "o:tracking": "no",
     "o:tracking-clicks": "no",
     "o:tracking-opens": "no",
+    ...(options.replyTo ? { "h:Reply-To": options.replyTo } : {}),
   });
   const base = process.env.MAILGUN_API_BASE_URL || "https://api.mailgun.net";
   const response = await fetch(
