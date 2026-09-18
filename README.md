@@ -77,6 +77,10 @@ The seed is idempotent: it creates missing records, preserves edits, and does no
 | `firestore.rules`, `scripts/deploy-rules.py` | Deny-all browser rules for this database only |
 | `scripts/provision.py` | Idempotent public app/domain registration and scoped runtime permissions/secrets |
 
+## Native iOS client
+
+A SwiftUI app uses the same API and accounts. See [docs/IOS.md](docs/IOS.md) for the Firebase iOS app values, how `/api/config` serves them, the association file for universal links, the privacy and support pages, and the API-contract commitments the app depends on.
+
 ## Data model
 
 The Zod schema defines all records rather than accepting arbitrary objects. `entities` contains discriminated `groups`, `events`, `resources`, `polls`, `content`, `tags`, and `consultations` documents. Each has a stable human-readable slug, status, audience, owner UID array, timestamps, and type-specific fields. An array of owners supports shared ownership without requiring a global owner role.

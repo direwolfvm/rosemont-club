@@ -20,6 +20,8 @@ const fields: Record<string, Field[]> = {
   "content-governance": ["name", "description"],
   "content-guidelines-site": ["name", "summary", "description"],
   "content-guidelines-whatsapp": ["name", "summary", "description"],
+  "content-privacy-policy": ["name", "summary", "description"],
+  "content-support": ["name", "summary", "description"],
   "groups-rosemont-neighbors": ["summary", "joinInstructions", "channels"],
   "events-rosemont-happy-hour": ["summary", "description"],
   "resources-rosemont-history": ["summary"],

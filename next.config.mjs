@@ -2,6 +2,14 @@ export default {
   output: "standalone",
   images: { qualities: [75, 85] },
   poweredByHeader: false,
+  async rewrites() {
+    return [
+      {
+        source: "/.well-known/apple-app-site-association",
+        destination: "/api/apple-app-site-association",
+      },
+    ];
+  },
   async headers() {
     return [
       {

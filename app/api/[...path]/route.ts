@@ -117,17 +117,71 @@ async function handle(
 ) {
   const { path } = await context.params;
   const [section, id, action] = path;
-  const method = req.method;
+  // HEAD is answered like GET (Apple probes the association file with it).
+  const method = req.method === "HEAD" ? "GET" : req.method;
   if (section === "health") return json({ ok: true, service: "rosemont-club" });
   if (method === "GET") publicReadLimit(req);
-  if (section === "config" && method === "GET")
+  if (section === "config" && method === "GET") {
+    // The native iOS app identifies itself with X-Rosemont-Client: ios/<version>
+    // (or ?platform=ios) and gets the Firebase iOS app's key and ID when they
+    // are configured. The response shape is the same for every client.
+    const client = req.headers.get("x-rosemont-client") || "";
+    const ios =
+      client.toLowerCase().startsWith("ios/") ||
+      req.nextUrl.searchParams.get("platform") === "ios";
+    const iosReady =
+      ios && process.env.FIREBASE_IOS_API_KEY && process.env.FIREBASE_IOS_APP_ID;
     return json({
-      apiKey: process.env.FIREBASE_API_KEY,
+      apiKey: iosReady
+        ? process.env.FIREBASE_IOS_API_KEY
+        : process.env.FIREBASE_API_KEY,
       authDomain: "permitting-ai-helper.firebaseapp.com",
       projectId: "permitting-ai-helper",
-      appId: process.env.FIREBASE_APP_ID,
+      appId: iosReady ? process.env.FIREBASE_IOS_APP_ID : process.env.FIREBASE_APP_ID,
       tenantId: process.env.FIREBASE_TENANT_ID || "alex311-qfnem",
+      iosMinimumVersion: process.env.IOS_MINIMUM_VERSION || "1.0.0",
+      platform: iosReady ? "ios" : "web",
     });
+  }
+  if (section === "apple-app-site-association" && method === "GET") {
+    // Served at /.well-known/apple-app-site-association through a rewrite.
+    // Enables universal links and password autofill for the iOS app once the
+    // Apple Team ID is configured; until then the file does not exist.
+    const team = process.env.APPLE_TEAM_ID;
+    if (!team) throw new HttpError(404, "Not found.");
+    const appId = team + ".club.rosemont.ios";
+    return NextResponse.json(
+      {
+        applinks: {
+          apps: [],
+          details: [
+            {
+              appIDs: [appId],
+              components: [
+                { "/": "/groups/*" },
+                { "/": "/events/*" },
+                { "/": "/resources/*" },
+                { "/": "/polls/*" },
+                { "/": "/consultations/*" },
+                { "/": "/profile" },
+                { "/": "/following" },
+                { "/": "/about" },
+                { "/": "/governance" },
+                { "/": "/guidelines" },
+              ],
+            },
+          ],
+        },
+        webcredentials: { apps: [appId] },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=3600",
+        },
+      },
+    );
+  }
   if (method !== "GET") {
     if (
       !allowedOrigin(
@@ -832,4 +886,4 @@ async function route(
     return json({ error: "Something went wrong. Please try again." }, 500);
   }
 }
-export { route as GET, route as POST, route as PATCH };
+export { route as GET, route as HEAD, route as POST, route as PATCH };

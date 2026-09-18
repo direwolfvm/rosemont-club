@@ -36,7 +36,18 @@ for name in mail_secrets:
  else:
   print('SECRET_SETUP_REQUIRED: Create '+name+' before deployment; see README.md.')
 print('Existing Rosemont Mailgun secret values preserved.')
-env={'GOOGLE_CLOUD_PROJECT':PROJECT,'FIRESTORE_DATABASE':'rosemont-club','FIREBASE_TENANT_ID':'alex311-qfnem','FIREBASE_API_KEY':config['apiKey'],'FIREBASE_APP_ID':config['appId'],'APP_BASE_URL':'https://rosemont.club','APP_ADDITIONAL_ORIGINS':'https://rosemont-club-650621702399.us-east4.run.app,https://rosemont-club-wiz2ttea4a-uk.a.run.app'}
+# Native iOS client: register the Firebase iOS app once and publish its public values through /api/config.
+ios_apps=call('https://firebase.googleapis.com/v1beta1/projects/'+PROJECT+'/iosApps').get('apps',[])
+ios=next((a for a in ios_apps if a.get('bundleId')=='club.rosemont.ios'),None)
+if ios is None:
+ call('https://firebase.googleapis.com/v1beta1/projects/'+PROJECT+'/iosApps','POST',{'bundleId':'club.rosemont.ios','displayName':'Rosemont Club iOS'})
+ print('Registered the Firebase iOS app; rerun once the operation completes to publish its values.')
+ ios_cfg={}
+else:
+ import base64,re
+ plist=base64.b64decode(call('https://firebase.googleapis.com/v1beta1/'+ios['name']+'/config')['configFileContents']).decode()
+ ios_cfg={k:(re.search('<key>'+k+'</key>\\s*<string>([^<]*)</string>',plist) or [None,''])[1] for k in ['API_KEY','GOOGLE_APP_ID']}
+env={'GOOGLE_CLOUD_PROJECT':PROJECT,'FIRESTORE_DATABASE':'rosemont-club','FIREBASE_TENANT_ID':'alex311-qfnem','FIREBASE_API_KEY':config['apiKey'],'FIREBASE_APP_ID':config['appId'],'FIREBASE_IOS_API_KEY':ios_cfg.get('API_KEY',''),'FIREBASE_IOS_APP_ID':ios_cfg.get('GOOGLE_APP_ID',''),'IOS_MINIMUM_VERSION':'1.0.0','APPLE_TEAM_ID':os.environ.get('APPLE_TEAM_ID',''),'APPLE_APP_STORE_ID':os.environ.get('APPLE_APP_STORE_ID',''),'APP_BASE_URL':'https://rosemont.club','APP_ADDITIONAL_ORIGINS':'https://rosemont-club-650621702399.us-east4.run.app,https://rosemont-club-wiz2ttea4a-uk.a.run.app'}
 open('.env.local','w').write('\n'.join(k+'='+v for k,v in env.items())+'\n');os.chmod('.env.local',0o600)
 open('deploy-env.yaml','w').write('\n'.join(k+': '+json.dumps(v) for k,v in env.items())+'\n')
 print('Public Firebase configuration saved. No private credentials written to source.')
