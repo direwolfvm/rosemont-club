@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import boundary from "@/data/rosemont-boundary.json";
-import type { Map as LeafletMap, LayerGroup } from "leaflet";
+import type { Map as LeafletMap, LayerGroup, LatLngExpression } from "leaflet";
 
 export type LonLat = [number, number];
 
@@ -79,7 +79,7 @@ export default function PolygonMap({
     );
     if (current.length >= 2)
       L.polygon(
-        current.map((p) => [p[1], p[0]]),
+        current.map((p): LatLngExpression => [p[1], p[0]]),
         { color: "#c2571f", weight: 2, fillOpacity: 0.18 },
       ).addTo(group);
     group.addTo(m);
