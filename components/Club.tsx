@@ -40,6 +40,7 @@ import {
 } from "./client";
 import Editor from "./Editor";
 import HistoryCarousel from "./HistoryCarousel";
+import { buildTimeline, type TimelineItem, type Rsvp } from "@/lib/following";
 const labels: Record<string, string> = {
   groups: "Groups",
   events: "Events",
@@ -47,6 +48,7 @@ const labels: Record<string, string> = {
   governance: "Community questions",
   about: "About",
   guidelines: "Community guidelines",
+  following: "Following",
   polls: "Quick polls",
   consultations: "Consultations",
   content: "Site content",
@@ -260,6 +262,232 @@ function ContactRelay({
         </button>
       )}
     </div>
+  );
+}
+/** Upcoming items across followed groups, in one ordered list. */
+function TimelineList({ items }: { items: TimelineItem[] }) {
+  if (!items.length)
+    return (
+      <p className="quiet-empty">
+        Nothing scheduled in the next couple of months from the groups you
+        follow.
+      </p>
+    );
+  return (
+    <ul className="timeline-list">
+      {items.map((item, i) => (
+        <li key={i}>
+          <time dateTime={item.date}>
+            {item.external
+              ? easternDate(item.date, item.allDay)
+              : displayDate(item.date, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                }) +
+                " · " +
+                new Date(item.date + "Z").toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  timeZone: "UTC",
+                })}
+          </time>
+          <span>
+            {item.external && item.href.startsWith("http") ? (
+              <a href={item.href} target="_blank" rel="noreferrer">
+                {item.title} <ArrowUpRight size={12} />
+              </a>
+            ) : (
+              <Link href={item.href}>{item.title}</Link>
+            )}
+            <small>
+              {item.groupName}
+              {item.location ? " · " + item.location : ""}
+              {item.external ? " · from the group’s calendar" : ""}
+            </small>
+          </span>
+          {item.going && <span className="badge-going">Going</span>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+function Following({
+  user,
+  records,
+  activity,
+  refreshActivity,
+  notify,
+  renderCard,
+}: {
+  user: Member;
+  records: Card[];
+  activity: { groups: { entityId: string; status: string }[]; events: Rsvp[] };
+  refreshActivity: () => Promise<void>;
+  notify: (s: string) => void;
+  renderCard: (e: Card) => React.ReactNode;
+}) {
+  const followedIds = activity.groups
+    .filter((g) => ["following", "member"].includes(g.status))
+    .map((g) => g.entityId);
+  const requestedIds = activity.groups
+    .filter((g) => g.status === "requested")
+    .map((g) => g.entityId);
+  const groups = followedIds
+    .map((id) => records.find((r) => r.kind === "groups" && r.id === id))
+    .filter((g): g is Card => !!g);
+  const requested = requestedIds
+    .map((id) => records.find((r) => r.kind === "groups" && r.id === id))
+    .filter((g): g is Card => !!g);
+  const [feeds, setFeeds] = useState<Record<string, never[]>>({});
+  const feedKey = groups
+    .filter((g) => g.calendarUrl)
+    .map((g) => g.id)
+    .join(",");
+  useEffect(() => {
+    let cancelled = false;
+    const targets = feedKey ? feedKey.split(",") : [];
+    Promise.all(
+      targets.map((id) =>
+        api("entities/" + id + "/calendar-feed")
+          .then((f) => [id, f.events] as const)
+          .catch(() => [id, []] as const),
+      ),
+    ).then((pairs) => {
+      if (!cancelled) setFeeds(Object.fromEntries(pairs));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [feedKey]);
+  const items = buildTimeline({
+    followedGroupIds: followedIds,
+    records,
+    rsvps: activity.events,
+    feeds,
+  });
+  async function unfollow(g: Card) {
+    try {
+      await api("entities/" + g.id + "/join", "POST", { join: false });
+      await refreshActivity();
+      notify("You are no longer following " + g.name + ".");
+    } catch (e) {
+      notify((e as Error).message);
+    }
+  }
+  if (!groups.length && !requested.length && !activity.events.some((r) => r.attending))
+    return (
+      <>
+        <div className="empty">
+          <Users />
+          <h2>You’re not following any groups yet</h2>
+          <p>
+            Follow a group and its gatherings, calendar, and chats show up
+            here in one place.
+          </p>
+          <Link className="button" href="/groups">
+            Browse groups <ArrowRight size={16} />
+          </Link>
+        </div>
+        <section className="home-section" data-pillar="groups">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow pillar-label">Groups</span>
+              <h2>A few to start with</h2>
+            </div>
+          </div>
+          <div className="card-grid">
+            {records
+              .filter((r) => r.kind === "groups" && !r.locked)
+              .sort((a, b) => Number(b.featured) - Number(a.featured))
+              .slice(0, 3)
+              .map(renderCard)}
+          </div>
+        </section>
+      </>
+    );
+  return (
+    <>
+      <section className="home-section" data-pillar="events">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow pillar-label">Events</span>
+            <h2>Coming up for you</h2>
+          </div>
+          <Link href="/events">
+            All events <ArrowRight size={16} />
+          </Link>
+        </div>
+        <TimelineList items={items} />
+      </section>
+      <section className="home-section" data-pillar="groups">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow pillar-label">Groups</span>
+            <h2>Groups you follow</h2>
+          </div>
+          <Link href="/groups">
+            Find more <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className="following-grid">
+          {groups.map((g) => (
+            <article className="side-card following-card" key={g.id}>
+              <Link href={"/groups/" + g.slug}>
+                <h3>{g.name}</h3>
+              </Link>
+              <p>{g.summary}</p>
+              {g.channels?.length ? (
+                <ul className="channel-links">
+                  {g.channels.map((c, i) => (
+                    <li key={i}>
+                      <ChannelIcon type={c.type} />
+                      {c.locked ? (
+                        <span className="muted">
+                          {c.label || c.type} · {audience(c.visibility).toLowerCase()}
+                        </span>
+                      ) : c.url ? (
+                        <a href={c.url} target="_blank" rel="noreferrer">
+                          {c.label || "Open " + c.type} <ArrowUpRight size={12} />
+                        </a>
+                      ) : c.email ? (
+                        <a href={"mailto:" + c.email}>{c.label || c.email}</a>
+                      ) : (
+                        <span>{c.label || c.type}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <div className="actions">
+                <Link className="text-link" href={"/groups/" + g.slug}>
+                  Group page <ArrowRight size={14} />
+                </Link>
+                <button className="text-button" onClick={() => void unfollow(g)}>
+                  Unfollow
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+        {requested.length > 0 && (
+          <>
+            <h3 className="requested-heading">Waiting on an organizer</h3>
+            {requested.map((g) => (
+              <div className="list-link" key={g.id}>
+                <span>
+                  <Link href={"/groups/" + g.slug}>{g.name}</Link>
+                  <small>Join request sent</small>
+                </span>
+                <button className="text-button" onClick={() => void unfollow(g)}>
+                  Withdraw
+                </button>
+              </div>
+            ))}
+          </>
+        )}
+      </section>
+    </>
   );
 }
 function NeighborhoodMap() {
@@ -557,6 +785,28 @@ export default function Club({ path }: { path: string[] }) {
   const [query, setQuery] = useState(""),
     [who, setWho] = useState(""),
     [need, setNeed] = useState("");
+  const [activity, setActivity] = useState<{
+    groups: { entityId: string; status: string }[];
+    events: Rsvp[];
+  }>({ groups: [], events: [] });
+  const refreshActivity = async () => {
+    if (!user) {
+      setActivity({ groups: [], events: [] });
+      return;
+    }
+    try {
+      setActivity(await api("activity"));
+    } catch {
+      /* stays as it was */
+    }
+  };
+  useEffect(() => {
+    void refreshActivity();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+  const followedIds = activity.groups
+    .filter((g) => ["following", "member"].includes(g.status))
+    .map((g) => g.entityId);
   async function refresh() {
     setError("");
     try {
@@ -937,6 +1187,27 @@ export default function Club({ path }: { path: string[] }) {
             </Link>
           ))}
         </section>
+        {user && followedIds.length > 0 && (
+          <section className="home-section" data-pillar="groups">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow pillar-label">Following</span>
+                <h2>Coming up for you</h2>
+              </div>
+              <Link href="/following">
+                Everything you follow <ArrowRight size={16} />
+              </Link>
+            </div>
+            <TimelineList
+              items={buildTimeline({
+                followedGroupIds: followedIds,
+                records,
+                rsvps: activity.events,
+                limit: 4,
+              })}
+            />
+          </section>
+        )}
         <section className="home-section" data-pillar="events">
           <div className="section-heading">
             <div>
@@ -1263,6 +1534,36 @@ export default function Club({ path }: { path: string[] }) {
         </div>
       </>
     );
+  else if (section === "following")
+    content = (
+      <>
+        <PageHeading
+          eyebrow="Following"
+          title="Your groups, in one place"
+          text="Everything coming up from the groups you follow, the events you’ve said you’ll attend, and the chats and lists each group uses."
+        />
+        {user ? (
+          <Following
+            user={user}
+            records={records}
+            activity={activity}
+            refreshActivity={refreshActivity}
+            notify={msg}
+            renderCard={card}
+          />
+        ) : (
+          <div className="empty">
+            <Users />
+            <h2>Sign in to see what you follow</h2>
+            <p>
+              Follow groups and this page gathers their gatherings, calendars,
+              and chats for you.
+            </p>
+            <button onClick={() => setAuthOpen(true)}>Sign in</button>
+          </div>
+        )}
+      </>
+    );
   else if (section === "guidelines")
     content = (
       <>
@@ -1414,6 +1715,7 @@ export default function Club({ path }: { path: string[] }) {
               "resources",
               "governance",
               "about",
+              ...(user ? ["following"] : []),
             ].map((p) => (
               <Link
                 key={p}
@@ -2441,6 +2743,11 @@ function Profile({
       </section>
       <section>
         <h2>Your groups & gatherings</h2>
+        <p>
+          <Link className="text-link" href="/following">
+            See everything you follow in one place <ArrowRight size={14} />
+          </Link>
+        </p>
         {activity.groups
           .filter((g: any) => g.status !== "none")
           .map((g: any) => {
