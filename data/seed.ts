@@ -325,6 +325,24 @@ export const seeds: Entity[] = [
   }),
   make({
     kind: "content",
+    name: "On the website",
+    slug: "guidelines-site",
+    summary:
+      "How we use rosemont.club: groups, events, resources, polls, and the messages you send through it.",
+    description:
+      "Be a good neighbor. Assume good intent, be welcoming to people who are new or different from you, and disagree without being disagreeable.\n\nKeep it about Rosemont. Post things that are useful to neighbors: groups, gatherings, local resources, and questions about the neighborhood. Give listings clear names and accurate details, and update or archive the ones you own when they change.\n\nRespect privacy. Don’t post anyone’s home address, phone number, or email without their permission, and don’t post photos of neighbors or children without asking. Invitations marked for residents stay with residents; please don’t share them outside the neighborhood.\n\nNo campaigning. The Club is not an advocacy organization and doesn’t take positions on behalf of the neighborhood. Listings and polls are not a place to lobby, endorse candidates, or organize campaigns. Quick polls are a read of opinion, not a decision; substantive community questions go to NeighborVote.\n\nNo advertising. Recommending a plumber or a restaurant is welcome. Repeated promotion, ads, and solicitations are not. Sponsors of events are named on the event listing.\n\nStay safe and legal. No harassment, threats, hate, or accusations against identifiable people. Call 911 in an emergency. Report city service problems through Alex311, not here.\n\nWho looks after what. Group organizers and listing owners are responsible for their own pages. Site volunteers may edit or archive content that breaks these guidelines and may remove access from accounts that repeatedly do. If you have a question or think something was handled wrongly, send a note to the volunteers from the Community questions page.",
+  }),
+  make({
+    kind: "content",
+    name: "In the Rosemont Neighbors WhatsApp group",
+    slug: "guidelines-whatsapp",
+    summary:
+      "The neighborhood-wide chat is for residents. A few habits keep it useful for everyone.",
+    description:
+      "Who it’s for. The group is for people who live in Rosemont. The invitation is shared with verified residents on this site; please don’t forward it outside the neighborhood.\n\nGood things to post. Neighborhood news and heads-ups, questions, lost and found, recommendations, offers of help, and reminders about gatherings.\n\nThings to keep out. Political campaigning and endorsements, advocacy drives, ads and sales pitches, chain messages and forwards, and anything you wouldn’t say to a neighbor’s face.\n\nPrivacy. Don’t share other people’s contact details, addresses, or photos without asking, and keep children out of photos and posts unless their parents share them. What’s said in the group stays in the group.\n\nSafety. For emergencies call 911; for non-emergencies contact the Alexandria Police. Please don’t post license plates, faces, or accusations about people you don’t know.\n\nManners. One topic per message, use the reply feature so threads stay readable, take long back-and-forths to a direct message, and keep late-night messages for things that can’t wait. If the group gets busy, mute it rather than leaving.\n\nModeration. Group admins may remove messages or members that don’t follow these guidelines. Questions about the group can go to the organizers through the Rosemont Neighbors page on this site.",
+  }),
+  make({
+    kind: "content",
     name: "Welcome to the Rosemont Club",
     slug: "home-intro",
     summary:

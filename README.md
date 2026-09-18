@@ -117,7 +117,7 @@ See [boundary provenance and privacy details](docs/BOUNDARY.md). Residency addre
 - About thirty resources drawn from the Rosemont Citizens Association's contacts page: utilities, schools, parks, City departments, elected-official lookups, and local news.
 - **Alex311 Reborn** (formerly Alex311 Visibility): clearly labeled unofficial and not City-endorsed.
 - Official City homepage, City neighborhood map, and Rosemont history archive resources.
-- Editable About/history/principles/participation/governance/homepage introduction and audience/topic tags.
+- Editable About/history/principles/participation/governance/homepage introduction and audience/topic tags, plus two community-guidelines sections (website and the Rosemont Neighbors WhatsApp group) shown at `/guidelines` and linked from the footer, the About page, and every group page.
 
 No fictional groups, polls, consultations, sponsors, or attendees are presented as real. Admins create real polls and active NeighborVote consultations when ready. Substantive decisions link out to NeighborVote; quick polls are explicitly low-stakes. Historical copy links to the [RCA history archive](https://www.rosemontcitizens.org/history), [City community history initiative](https://www.alexandriava.gov/cultural-history/the-colored-rosemont-community-history-initiative), and [historic nomination](https://www.dhr.virginia.gov/VLR_to_transfer/PDFNoms/100-0137_Rosemont_HD_1992_Final_Nomination.pdf).
 
