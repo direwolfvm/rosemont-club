@@ -43,6 +43,14 @@ neighbors land on the site afterwards. The project has no custom password
 policy (Firebase's default minimum of 6 characters); the app's 8-character
 minimum is stricter and fine.
 
+## Google consent screen
+
+The OAuth brand is shared by every app in the `permitting-ai-helper` project,
+so Google's sign-in sheet reads "Herbert Industries Applications" with the
+homepage `jordaneccl.es`, on the web and in the app alike. It cannot be
+per-app without a separate Google Cloud project. The privacy and support
+pages tell neighbors to expect it.
+
 ## App Store pages
 
 - Privacy policy: `https://rosemont.club/privacy`
