@@ -242,10 +242,16 @@ export type Member = {
   createdAt: string;
 };
 export type Viewer = Member | null;
-export type Card = Partial<Entity> &
+export type Channel = z.infer<typeof channelSchema>;
+/** A channel as sent to a viewer: protected ones keep only their type, label, and audience. */
+export type ChannelView = Channel & { locked?: boolean };
+export type Card = Omit<Partial<Entity>, "channels"> &
   Pick<Entity, "id" | "name" | "slug" | "kind" | "visibility"> & {
+    channels?: ChannelView[];
     locked?: boolean;
     eligibilityNote?: string;
+    /** For locked groups: which kinds of channels exist, without their details. */
+    channelTypes?: string[];
   };
 export function canView(audience: string, user: Viewer) {
   return (
@@ -287,6 +293,9 @@ export function projectEntity(e: Entity, user: Viewer): Card | null {
       kind: e.kind,
       visibility: e.visibility,
       locked: true,
+      ...(e.kind === "groups" && e.channels.length
+        ? { channelTypes: [...new Set(e.channels.map((c) => c.type))] }
+        : {}),
       ...(e.eligibility?.mode === "custom"
         ? {
             eligibilityNote: e.eligibility.note || "neighbors on specific streets",
@@ -297,7 +306,21 @@ export function projectEntity(e: Entity, user: Viewer): Card | null {
   if (canManage(e, user)) return e;
   return {
     ...e,
-    channels: e.channels.filter((c) => canView(c.visibility, user)),
+    // Protected channels stay visible as an indicator (what exists and for
+    // whom) but their invitation, address, and instructions are withheld.
+    channels: e.channels.map((c): ChannelView =>
+      canView(c.visibility, user)
+        ? c
+        : {
+            type: c.type,
+            label: c.label,
+            visibility: c.visibility,
+            url: "",
+            email: "",
+            instructions: "",
+            locked: true,
+          },
+    ),
     // Whitelisted streets and addresses are the owners' business only.
     eligibility: {
       mode: e.eligibility?.mode || "club",

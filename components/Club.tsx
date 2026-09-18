@@ -700,9 +700,15 @@ export default function Club({ path }: { path: string[] }) {
           ) : e.kind === "groups" ? (
             <>
               View group
-              {!e.locked && e.channels?.length ? (
+              {(e.locked
+                ? e.channelTypes || []
+                : [...new Set((e.channels || []).map((c) => c.type))]
+              ).length ? (
                 <span className="card-channels">
-                  {[...new Set(e.channels.map((c) => c.type))].map((type) => (
+                  {(e.locked
+                    ? e.channelTypes || []
+                    : [...new Set((e.channels || []).map((c) => c.type))]
+                  ).map((type) => (
                     <ChannelIcon key={type} type={type} />
                   ))}
                 </span>
@@ -1782,12 +1788,33 @@ function Detail({
                 Groups and their chats follow the Club’s{" "}
                 <Link href="/guidelines">community guidelines</Link>.
               </p>
-              {e.channels?.map((c, i) => (
-                <div className="channel" key={i}>
+              {(item.channels || []).map((c, i) => (
+                <div className={"channel" + (c.locked ? " channel-locked" : "")} key={i}>
                   <ChannelIcon type={c.type} />
                   <div>
-                    <h3>{c.label}</h3>
-                    <p>{c.instructions}</p>
+                    <h3>{c.label || c.type}</h3>
+                    {c.locked ? (
+                      <>
+                        <p>
+                          <LockKeyhole size={14} /> Available to{" "}
+                          {audience(c.visibility).toLowerCase()}.
+                          {c.visibility === "residents"
+                            ? " Verify your Rosemont residency to see the invitation."
+                            : " Sign in to see the details."}
+                        </p>
+                        {!user ? (
+                          <button className="secondary" onClick={signIn}>
+                            Sign in
+                          </button>
+                        ) : (
+                          <Link className="button secondary" href="/profile">
+                            Verify your residency
+                          </Link>
+                        )}
+                      </>
+                    ) : (
+                      <p>{c.instructions}</p>
+                    )}
                     {c.url && (
                       <a
                         className="text-link"
@@ -1802,10 +1829,9 @@ function Detail({
                   </div>
                 </div>
               ))}
-              {!e.channels?.length && (
-                <p className="notice">
-                  Communication details are available to eligible members. Visit
-                  your profile to check your residency status.
+              {!item.channels?.length && (
+                <p className="muted">
+                  This group hasn’t listed a chat or email list yet.
                 </p>
               )}
               {canManage(e, user) && members.length > 0 && (

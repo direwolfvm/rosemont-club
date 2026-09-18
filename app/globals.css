@@ -2365,3 +2365,20 @@ dialog form {
   display: block;
   margin-top: 4px;
 }
+
+/* A channel the viewer can see exists but not open. */
+.channel-locked {
+  background: var(--mist);
+  border-style: dashed;
+}
+.channel-locked p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.channel-locked .button,
+.channel-locked button {
+  font-size: 13px;
+  padding: 9px 14px;
+}
