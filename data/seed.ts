@@ -212,12 +212,12 @@ export const seeds: Entity[] = [
   }),
   make({
     kind: "resources",
-    name: "Alex311 Visibility",
+    name: "Alex311 Reborn",
     slug: "alex311-visibility",
     summary: "A clearer view of local service requests.",
     description:
-      "An unofficial mirror and visibility tool for Alexandria’s Alex311 system. Explore neighborhood service requests and their progress. This independent tool is not operated by or officially endorsed by the City of Alexandria.",
-    website: "https://alex311-visibility.me",
+      "Alex311 Reborn (formerly Alex311 Visibility) is an unofficial mirror and visibility tool for Alexandria’s Alex311 system. Explore neighborhood service requests and their progress. This independent tool is not operated by or officially endorsed by the City of Alexandria.",
+    website: "https://alex311visibility.me/",
     audienceTags: ["Anyone", "New resident", "Homeowner", "Renter"],
     topicTags: ["City services", "Civic participation"],
     featured: true,

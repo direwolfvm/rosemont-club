@@ -402,7 +402,7 @@ function AuthDialog({
             ? "Reset your password"
             : "Sign in"}
       </h2>
-      <p>One account for The Rosemont Club and Alex311 Visibility.</p>
+      <p>One account for The Rosemont Club and Alex311 Reborn.</p>
       {mode !== "reset" && (
         <button
           className="secondary wide"

@@ -27,7 +27,7 @@ You will get an acknowledgement, and we will let you know when it is fixed.
 - The deployment and CI configuration in this repository
 
 Third-party services the site links to (the City of Alexandria, NeighborVote,
-Alex311 Visibility, and others) are not in scope; please report issues with
+Alex311 Reborn, and others) are not in scope; please report issues with
 those services to their operators.
 
 ## What we do

@@ -21,6 +21,7 @@ const fields: Record<string, Field[]> = {
   "groups-rosemont-neighbors": ["summary", "joinInstructions", "channels"],
   "events-rosemont-happy-hour": ["summary", "description"],
   "resources-rosemont-history": ["summary"],
+  "resources-alex311-visibility": ["name", "description", "website"],
 };
 
 async function main() {
