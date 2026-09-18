@@ -46,6 +46,7 @@ const labels: Record<string, string> = {
   resources: "Resources",
   governance: "Community questions",
   about: "About",
+  guidelines: "Community guidelines",
   polls: "Quick polls",
   consultations: "Consultations",
   content: "Site content",
@@ -1247,10 +1248,47 @@ export default function Club({ path }: { path: string[] }) {
               <p>
                 The Club’s organization and participation model are described
                 here separately from the historical Rosemont Citizens
-                Association.
+                Association. Expectations for how neighbors treat each other on
+                the site and in the neighborhood chat are in the{" "}
+                <Link href="/guidelines">community guidelines</Link>.
               </p>
             </article>
           </div>
+        </div>
+      </>
+    );
+  else if (section === "guidelines")
+    content = (
+      <>
+        <PageHeading
+          eyebrow="Community guidelines"
+          title="How we treat each other"
+          text="A few plain expectations for the website and for the Rosemont Neighbors WhatsApp group. They apply to everyone, volunteers included."
+        />
+        <div className="prose guidelines">
+          {["guidelines-site", "guidelines-whatsapp"].map((slug) => (
+            <article key={slug} id={slug.replace("guidelines-", "")}>
+              <h2>{find(slug)?.name}</h2>
+              {find(slug)?.summary && (
+                <p className="lead">{find(slug)?.summary}</p>
+              )}
+              <Paragraphs text={find(slug)?.description} />
+              {user?.admin && (
+                <button
+                  className="text-button"
+                  onClick={() =>
+                    setEditing({ entity: find(slug), kind: "content" })
+                  }
+                >
+                  Edit section
+                </button>
+              )}
+            </article>
+          ))}
+          <p className="muted">
+            Questions about these guidelines, or something you think was handled
+            wrongly? <Link href="/governance">Send a note to the volunteers</Link>.
+          </p>
         </div>
       </>
     );
@@ -1448,6 +1486,7 @@ export default function Club({ path }: { path: string[] }) {
           </p>
           <div>
             <Link href="/about">About the Club</Link>
+            <Link href="/guidelines">Community guidelines</Link>
             <Link href="/governance">Volunteer & ideas</Link>
             <Link href="/profile">Your privacy & residency</Link>
           </div>
@@ -1739,6 +1778,10 @@ function Detail({
             <>
               <h2>How to join</h2>
               <p>{e.joinInstructions}</p>
+              <p className="muted">
+                Groups and their chats follow the Club’s{" "}
+                <Link href="/guidelines">community guidelines</Link>.
+              </p>
               {e.channels?.map((c, i) => (
                 <div className="channel" key={i}>
                   <ChannelIcon type={c.type} />
