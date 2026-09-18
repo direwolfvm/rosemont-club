@@ -10,6 +10,9 @@ import {
   CalendarDays,
   Compass,
   MessageCircle,
+  Instagram,
+  Facebook,
+  Globe,
   MapPin,
   LockKeyhole,
   Search,
@@ -68,6 +71,192 @@ const displayDate = (
     ...options,
     timeZone: "UTC",
   });
+/** Icon for a group's communication channel. WhatsApp has no icon in the icon set, so it is drawn inline. */
+function ChannelIcon({ type }: { type: string }) {
+  const key = type.toLowerCase();
+  return (
+    <span className={"channel-icon " + key} aria-hidden="true">
+      {key === "whatsapp" ? (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+        </svg>
+      ) : key === "instagram" ? (
+        <Instagram />
+      ) : key === "facebook" ? (
+        <Facebook />
+      ) : key === "email" ? (
+        <Mail />
+      ) : key === "website" ? (
+        <Globe />
+      ) : (
+        <MessageCircle />
+      )}
+    </span>
+  );
+}
+const easternDate = (iso: string, allDay: boolean) =>
+  allDay
+    ? new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : new Date(iso).toLocaleString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "America/New_York",
+      });
+/** Upcoming events from a group's published calendar, fetched through the server. */
+function GroupCalendar({ id, url }: { id: string; url: string }) {
+  const [feed, setFeed] = useState<{
+    name: string;
+    events: {
+      start: string;
+      end: string;
+      allDay: boolean;
+      summary: string;
+      location: string;
+      url: string;
+    }[];
+  } | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    api("entities/" + id + "/calendar-feed")
+      .then(setFeed)
+      .catch(() => setFailed(true));
+  }, [id]);
+  return (
+    <>
+      <h2>{feed?.name ? "From the " + feed.name + " calendar" : "Group calendar"}</h2>
+      {failed ? (
+        <p className="muted">The group’s calendar could not be loaded right now.</p>
+      ) : !feed ? (
+        <p className="muted">Loading the calendar…</p>
+      ) : !feed.events.length ? (
+        <p className="muted">Nothing scheduled in the next few months.</p>
+      ) : (
+        <ul className="feed-list">
+          {feed.events.map((item, i) => (
+            <li key={i}>
+              <time dateTime={item.start}>
+                {easternDate(item.start, item.allDay)}
+                {item.allDay && <small>All day</small>}
+              </time>
+              <span>
+                {item.url ? (
+                  <a href={item.url} target="_blank" rel="noreferrer">
+                    {item.summary}
+                  </a>
+                ) : (
+                  item.summary
+                )}
+                {item.location && <small>{item.location}</small>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="feed-actions">
+        <a
+          href={
+            "https://calendar.google.com/calendar/r?cid=" +
+            encodeURIComponent(url)
+          }
+          target="_blank"
+          rel="noreferrer"
+        >
+          Add to Google Calendar <ArrowUpRight size={13} />
+        </a>
+        <a href={url.replace(/^https:/, "webcal:")}>
+          Subscribe (Apple, Outlook) <ArrowUpRight size={13} />
+        </a>
+        <a href={url} target="_blank" rel="noreferrer">
+          Download .ics <ArrowUpRight size={13} />
+        </a>
+      </div>
+    </>
+  );
+}
+/** Write to the organizers without seeing their address; the reply goes to the sender's account email. */
+function ContactRelay({
+  entity,
+  user,
+  signIn,
+  notify,
+}: {
+  entity: Entity;
+  user: Member | null;
+  signIn: () => void;
+  notify: (s: string) => void;
+}) {
+  const [subject, setSubject] = useState(""),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false);
+  return (
+    <div className="side-card contact-form">
+      <Mail />
+      <h2>Contact the organizers</h2>
+      <p>
+        Your message is emailed to the organizers. Their address stays private;
+        they reply to your account email.
+      </p>
+      {user ? (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            try {
+              await api("entities/" + entity.id + "/contact", "POST", {
+                subject,
+                message,
+              });
+              setSubject("");
+              setMessage("");
+              notify("Your message is on its way to the organizers.");
+            } catch (err) {
+              notify((err as Error).message);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <label>
+            Subject
+            <input
+              required
+              minLength={3}
+              maxLength={150}
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+          </label>
+          <label>
+            Message
+            <textarea
+              required
+              minLength={10}
+              maxLength={3000}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </label>
+          <small>Please don’t include your home address.</small>
+          <button disabled={busy} className="wide">
+            {busy ? "Sending…" : "Send message"}
+          </button>
+        </form>
+      ) : (
+        <button className="wide" onClick={signIn}>
+          Sign in to send a message
+        </button>
+      )}
+    </div>
+  );
+}
 function NeighborhoodMap() {
   const coords = boundary.features[0].geometry.coordinates as number[][][][];
   const project = (p: number[]) => [
@@ -504,7 +693,16 @@ export default function Club({ path }: { path: string[] }) {
               {e.location}
             </>
           ) : e.kind === "groups" ? (
-            "View group"
+            <>
+              View group
+              {!e.locked && e.channels?.length ? (
+                <span className="card-channels">
+                  {[...new Set(e.channels.map((c) => c.type))].map((type) => (
+                    <ChannelIcon key={type} type={type} />
+                  ))}
+                </span>
+              ) : null}
+            </>
           ) : e.kind === "resources" ? (
             "View resource"
           ) : (
@@ -1410,7 +1608,7 @@ function Detail({
   const dates = item.locked ? [] : occurrences(e);
   const activeDate = date || dates[0];
   useEffect(() => {
-    if (e.kind === "groups" && user && !item.locked)
+    if (e.kind === "groups" && user && (!item.locked || item.eligibilityNote))
       api("entities/" + e.id + "/join")
         .then((x) => setJoin(x.status))
         .catch(() => {});
@@ -1453,15 +1651,34 @@ function Detail({
           <span className="eyebrow">Restricted page</span>
           <h1>{e.name}</h1>
           <p>
-            Details are available to {audience(e.visibility).toLowerCase()}.
-            Private invitations, locations, and contact details stay with their
-            intended audience.
+            {item.eligibilityNote
+              ? `This group is limited to ${item.eligibilityNote.charAt(0).toLowerCase() + item.eligibilityNote.slice(1)}. Verified residents with a matching address see it automatically.`
+              : `Details are available to ${audience(e.visibility).toLowerCase()}. Private invitations, locations, and contact details stay with their intended audience.`}
           </p>
           {!user ? (
             <button onClick={signIn}>Sign in to continue</button>
-          ) : (
+          ) : !user.verifiedResident && !user.admin ? (
             <Link className="button" href="/profile">
               Verify your Rosemont residency
+            </Link>
+          ) : item.eligibilityNote && item.membership === "request" ? (
+            <button
+              disabled={busy || join !== "none"}
+              onClick={() =>
+                void run(async () => {
+                  const x = await api("entities/" + e.id + "/join", "POST", {
+                    join: true,
+                  });
+                  setJoin(x.status);
+                  notify("Your request is saved. An organizer will take a look.");
+                })
+              }
+            >
+              {join === "requested" ? "Request sent" : "Request to join"}
+            </button>
+          ) : (
+            <Link className="button" href="/profile">
+              Check your residency status
             </Link>
           )}
         </div>
@@ -1520,7 +1737,7 @@ function Detail({
               <p>{e.joinInstructions}</p>
               {e.channels?.map((c, i) => (
                 <div className="channel" key={i}>
-                  <MessageCircle />
+                  <ChannelIcon type={c.type} />
                   <div>
                     <h3>{c.label}</h3>
                     <p>{c.instructions}</p>
@@ -1575,6 +1792,9 @@ function Detail({
                     </div>
                   ))}
                 </section>
+              )}
+              {e.calendarUrl && (
+                <GroupCalendar id={e.id} url={e.calendarUrl} />
               )}
               <h2>Events from this group</h2>
               {records
@@ -1866,12 +2086,19 @@ function Detail({
               </small>
             </div>
           )}
-          {e.contactEmail && (
+          {e.contactEmail ? (
             <div className="side-card">
               <h3>Get in touch</h3>
               <a href={"mailto:" + e.contactEmail}>{e.contactEmail}</a>
             </div>
-          )}
+          ) : e.contactRelay ? (
+            <ContactRelay
+              entity={e}
+              user={user}
+              signIn={signIn}
+              notify={notify}
+            />
+          ) : null}
           {["groups", "events", "resources"].includes(e.kind) &&
             !canManage(e, user) && (
               <Feedback
@@ -2007,7 +2234,10 @@ function Profile({
                 });
                 setResult(
                   r.verifiedResident
-                    ? "Your address falls inside the Club boundary. You’re verified."
+                    ? "Your address falls inside the Club boundary. You’re verified." +
+                        (r.eligibleGroupIds?.length
+                          ? ` It also qualifies you for ${r.eligibleGroupIds.length} block group${r.eligibleGroupIds.length === 1 ? "" : "s"}.`
+                          : "")
                     : r.matched
                       ? "That address falls outside the current Club boundary. You can request volunteer review."
                       : "We could not confidently match that address. Try the full address or request volunteer review.",

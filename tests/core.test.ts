@@ -100,7 +100,7 @@ test("owners can manage only owned objects; drafts and archives are not public",
   );
 });
 test("happy hour recurs on second Wednesdays only, April through October", () => {
-  const e = seeds.find((e) => e.kind === "events")!;
+  const e = seeds.find((e) => e.slug === "rosemont-happy-hour")!;
   const dates = occurrences(e, new Date("2026-09-17T12:00:00Z"), 10);
   assert.deepEqual(dates.slice(0, 3), [
     "2026-10-14T17:00",
@@ -115,7 +115,7 @@ test("happy hour recurs on second Wednesdays only, April through October", () =>
   }
 });
 test("recurrence cancellation, end date and exact time boundaries work", () => {
-  const e = seeds.find((e) => e.kind === "events")!;
+  const e = seeds.find((e) => e.slug === "rosemont-happy-hour")!;
   assert.equal(
     occurrences(
       {
@@ -141,7 +141,7 @@ test("recurrence cancellation, end date and exact time boundaries work", () => {
   );
 });
 test("weekly and monthly recurrence work without duplicate database records", () => {
-  const e = seeds.find((e) => e.kind === "events")!;
+  const e = seeds.find((e) => e.slug === "rosemont-happy-hour")!;
   assert.deepEqual(
     occurrences(
       {
@@ -168,7 +168,7 @@ test("weekly and monthly recurrence work without duplicate database records", ()
   );
 });
 test("calendar encodes recurrence, Eastern daylight time, escapes and overrides", () => {
-  const e = seeds.find((e) => e.kind === "events")!;
+  const e = seeds.find((e) => e.slug === "rosemont-happy-hour")!;
   const text = ics([
     {
       ...e,

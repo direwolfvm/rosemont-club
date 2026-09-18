@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createHash } from "node:crypto";
+import { FieldValue } from "firebase-admin/firestore";
 import { db, auth } from "@/lib/firebase";
 import { viewer, requireUser, requireAdmin, HttpError } from "@/lib/auth";
 import {
@@ -8,12 +9,20 @@ import {
   projectEntity,
   canManage,
   canView,
+  canViewEntity,
   Member,
   Entity,
 } from "@/lib/schema";
 import { ics, occurrences } from "@/lib/events";
-import { verifyAddress, boundaryVersion } from "@/lib/residency";
+import {
+  geocodeAddress,
+  residentFromMatch,
+  matchesEligibility,
+  eligibleGroupIds,
+  boundaryVersion,
+} from "@/lib/residency";
 import { sendMail } from "@/lib/mail";
+import { fetchFeed } from "@/lib/external-calendar";
 import { allowedOrigin } from "@/lib/origin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -163,22 +172,32 @@ async function handle(
       .object({ address: z.string().trim().min(8).max(250) })
       .strict()
       .parse(await body(req));
-    let result;
+    let match;
     try {
-      result = await verifyAddress(address);
+      match = await geocodeAddress(address);
     } catch {
       throw new HttpError(
         503,
         "Address matching is temporarily unavailable. Please try again or request volunteer review.",
       );
     }
+    // Groups with their own rule are evaluated now, while the address is in
+    // memory. Only the resulting group IDs are stored.
+    const custom = (
+      await db
+        .collection("entities")
+        .where("kind", "==", "groups")
+        .where("eligibility.mode", "==", "custom")
+        .get()
+    ).docs.map((d) => d.data() as Entity);
     const update = {
-      verifiedResident: result.verifiedResident,
+      verifiedResident: residentFromMatch(match),
       verificationDate: new Date().toISOString(),
       verificationMethod: "census-geocoder/" + boundaryVersion,
+      eligibleGroupIds: eligibleGroupIds(match, custom),
     };
     await db.collection("users").doc(user.id).update(update);
-    return json({ ...update, matched: result.matched });
+    return json({ ...update, matched: !!match });
   }
   if (section === "activity" && method === "GET") {
     requireUser(user);
@@ -478,18 +497,146 @@ async function handle(
             .collection("memberships")
             .doc(e.id + "_" + input.userId)
             .update({ status: input.status });
+          // An approved member can see a custom-eligibility group even if
+          // their address did not match the rule (or they never verified).
+          await db
+            .collection("users")
+            .doc(input.userId)
+            .update({
+              approvedGroupIds:
+                input.status === "member"
+                  ? FieldValue.arrayUnion(e.id)
+                  : FieldValue.arrayRemove(e.id),
+            });
           await audit(user.id, "membership-" + input.status, e.id);
           return json({ ok: true });
         }
       }
+      if (action === "join" && e.kind === "groups") {
+        // Audience-level check only: a verified resident who does not match a
+        // group's custom rule may still ask an organizer to let them in.
+        requireUser(user);
+        if (!canView(e.visibility, user) || e.status !== "active")
+          throw new HttpError(403, "This group is not available to your account.");
+        const ref = db.collection("memberships").doc(id + "_" + user.id);
+        if (method === "GET")
+          return json((await ref.get()).data() || { status: "none" });
+        if (method === "POST") {
+          const { join } = z
+            .object({ join: z.boolean() })
+            .parse(await body(req));
+          const eligible = canViewEntity(e, user);
+          const status = join
+            ? e.membership === "request" || !eligible
+              ? "requested"
+              : "following"
+            : "none";
+          await ref.set({
+            entityId: id,
+            userId: user.id,
+            status,
+            updatedAt: new Date().toISOString(),
+          });
+          if (!join && e.eligibility?.mode === "custom")
+            await db
+              .collection("users")
+              .doc(user.id)
+              .update({ approvedGroupIds: FieldValue.arrayRemove(e.id) });
+          return json({ status });
+        }
+      }
+      if (action === "eligibility-check" && method === "POST") {
+        // Lets an owner confirm how the geocoder reads an address before
+        // relying on a street or area rule. Nothing about the address is kept.
+        requireUser(user);
+        if (e.kind !== "groups" || !canManage(e, user))
+          throw new HttpError(403, "Only group owners can test eligibility.");
+        await limit("eligibility-check:" + user.id, 30);
+        const { address } = z
+          .object({ address: z.string().trim().min(8).max(250) })
+          .strict()
+          .parse(await body(req));
+        let match;
+        try {
+          match = await geocodeAddress(address);
+        } catch {
+          throw new HttpError(503, "Address matching is temporarily unavailable.");
+        }
+        return json({
+          matched: !!match,
+          resident: residentFromMatch(match),
+          eligible: !!match && matchesEligibility(match, e.eligibility),
+          street: match?.street || "",
+        });
+      }
       if (
-        !canView(e.visibility, user) ||
+        !canViewEntity(e, user) ||
         !["active", "cancelled"].includes(e.status)
       )
         throw new HttpError(
           403,
           "This content is not available to your account.",
         );
+      if (action === "calendar-feed" && method === "GET") {
+        if (e.kind !== "groups" || !e.calendarUrl)
+          throw new HttpError(404, "This group has no published calendar.");
+        try {
+          return json(await fetchFeed(e.calendarUrl));
+        } catch {
+          throw new HttpError(502, "The group's calendar could not be loaded right now.");
+        }
+      }
+      if (action === "contact" && method === "POST") {
+        // Relay a message to the organizers without exposing their address.
+        requireUser(user);
+        if (!["groups", "events", "resources"].includes(e.kind))
+          throw new HttpError(404, "Not found.");
+        await limit("contact:" + user.id, 5);
+        const input = z
+          .object({
+            subject: z.string().trim().min(3).max(150),
+            message: z.string().trim().min(10).max(3000),
+          })
+          .strict()
+          .parse(await body(req));
+        const recipients = e.contactEmail
+          ? [e.contactEmail]
+          : (
+              await Promise.all(
+                e.ownerIds.map(async (ownerId) =>
+                  (await db.collection("users").doc(ownerId).get()).data() as
+                    | Member
+                    | undefined,
+                ),
+              )
+            )
+              .filter((owner) => owner && !owner.disabled && owner.email)
+              .map((owner) => owner!.email);
+        if (!recipients.length)
+          throw new HttpError(404, "This listing has no one to contact yet.");
+        if (!user.email)
+          throw new HttpError(400, "Your account needs an email address to send messages.");
+        const text = [
+          `${user.displayName} sent a message through The Rosemont Club about "${e.name}".`,
+          "Reply to this email to answer them directly; your address is not shown on the site.",
+          "",
+          input.message,
+          "",
+          "— The Rosemont Club · https://rosemont.club/" + e.kind + "/" + e.slug,
+        ].join("\n");
+        try {
+          await sendMail(
+            recipients.join(","),
+            "[Rosemont Club] " + input.subject,
+            text,
+            { replyTo: user.email },
+          );
+        } catch (error) {
+          throw new HttpError(502, (error as Error).message);
+        }
+        await audit(user.id, "contact", e.id);
+        return json({ ok: true });
+      }
       if (action === "vote" && method === "POST") {
         requireUser(user);
         const { option } = z
@@ -505,7 +652,7 @@ async function handle(
           if (
             fresh.kind !== "polls" ||
             fresh.status !== "active" ||
-            !canView(fresh.visibility, user) ||
+            !canViewEntity(fresh, user) ||
             Date.parse(fresh.opens) > Date.now() ||
             Date.parse(fresh.closes) < Date.now() ||
             option >= fresh.options.length
@@ -554,29 +701,6 @@ async function handle(
           selected: own?.option ?? null,
         });
       }
-      if (action === "join" && e.kind === "groups") {
-        requireUser(user);
-        const ref = db.collection("memberships").doc(id + "_" + user.id);
-        if (method === "GET")
-          return json((await ref.get()).data() || { status: "none" });
-        if (method === "POST") {
-          const { join } = z
-            .object({ join: z.boolean() })
-            .parse(await body(req));
-          const status = join
-            ? e.membership === "request"
-              ? "requested"
-              : "following"
-            : "none";
-          await ref.set({
-            entityId: id,
-            userId: user.id,
-            status,
-            updatedAt: new Date().toISOString(),
-          });
-          return json({ status });
-        }
-      }
       if (action === "rsvp" && e.kind === "events") {
         requireUser(user);
         const date = req.nextUrl.searchParams.get("date");
@@ -605,7 +729,7 @@ async function handle(
           if (
             !fresh.rsvp ||
             fresh.status !== "active" ||
-            !canView(fresh.visibility, user) ||
+            !canViewEntity(fresh, user) ||
             !occurrences(fresh, new Date(), 200).includes(input.date)
           )
             throw new HttpError(400, "RSVP is not available for this date.");
