@@ -34,7 +34,7 @@ The local NeighborVote repository (`direwolfvm/neighborvote`) uses Next.js 15, R
 
 Rosemont follows the existing Next.js/React and Cloud Build pattern. It has a separate named Firestore database, `rosemont-club`, and a separate Cloud Run service of the same name. This avoids coupling neighborhood directory operations to either existing SQL database. No new GCP project was created. Existing services, databases, secret versions, and auth providers were not replaced. Firebase authorized domains were extended while preserving all existing entries.
 
-The deployed Alex311 configuration uses `alex311visibility.me` (without a hyphen). The two variants supplied in the brief (`alex-visibility.me` and `alex311-visibility.me`) could not be loaded during inspection. The seed resource deliberately retains the exact requested URL, `https://alex311-visibility.me`; confirm that alias in DNS or change it through the resource editor.
+The Alex311 project is now named Alex311 Reborn and lives at `https://alex311visibility.me/`; the seeded resource uses that name and address (the page slug `alex311-visibility` is unchanged so existing links keep working).
 
 ## Local development
 
@@ -115,7 +115,7 @@ See [boundary provenance and privacy details](docs/BOUNDARY.md). Residency addre
 - **W Oak Street Neighbors**: residents-only block email list with a custom street eligibility rule and contact relay.
 - **Quick poll**: whether advocacy groups should be listed in the Groups directory (residents only, closes December 31, 2026).
 - About thirty resources drawn from the Rosemont Citizens Association's contacts page: utilities, schools, parks, City departments, elected-official lookups, and local news.
-- **Alex311 Visibility**: clearly labeled unofficial and not City-endorsed, using the requested URL.
+- **Alex311 Reborn** (formerly Alex311 Visibility): clearly labeled unofficial and not City-endorsed.
 - Official City homepage, City neighborhood map, and Rosemont history archive resources.
 - Editable About/history/principles/participation/governance/homepage introduction and audience/topic tags.
 
