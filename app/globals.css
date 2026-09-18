@@ -2321,3 +2321,47 @@ dialog form {
 .guidelines p {
   white-space: pre-line;
 }
+
+/* Owner picker in the editor. */
+.owner-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+.owner-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.owner-list li small {
+  display: block;
+}
+.owner-list li > button {
+  flex-shrink: 0;
+  font-size: 13px;
+  padding: 8px 12px;
+}
+.owner-results {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 14px;
+  background: var(--white);
+}
+.owner-results li:last-child {
+  border-bottom: 0;
+}
+.remember-address {
+  align-items: flex-start;
+  margin: 14px 0;
+}
+.remember-address input {
+  margin-top: 4px;
+}
+.remember-address small {
+  display: block;
+  margin-top: 4px;
+}

@@ -18,7 +18,7 @@ steps:
       - '--region=${_REGION}'
       - '--service-account=rosemont-runtime@$PROJECT_ID.iam.gserviceaccount.com'
       - '--env-vars-file=deploy-env.yaml'
-      - '--set-secrets=MAILGUN_API_KEY=ROSEMONT_MAILGUN_API_KEY:latest,MAILGUN_DOMAIN=ROSEMONT_MAILGUN_DOMAIN:latest,MAIL_FROM=ROSEMONT_MAIL_FROM:latest'
+      - '--set-secrets=MAILGUN_API_KEY=ROSEMONT_MAILGUN_API_KEY:latest,MAILGUN_DOMAIN=ROSEMONT_MAILGUN_DOMAIN:latest,MAIL_FROM=ROSEMONT_MAIL_FROM:latest,ADDRESS_KEY=ROSEMONT_ADDRESS_KEY:latest'
       - '--allow-unauthenticated'
       - '--min-instances=0'
       - '--max-instances=3'

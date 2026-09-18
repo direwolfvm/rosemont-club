@@ -235,6 +235,10 @@ export type Member = {
   eligibleGroupIds?: string[];
   /** Groups whose owners approved the member's request to join. */
   approvedGroupIds?: string[];
+  /** The member chose to keep an encrypted copy of their geocoded address for future block-group checks. */
+  addressStored?: boolean;
+  /** When block-group eligibility was last computed from an address. */
+  eligibilityCheckedAt?: string;
   createdAt: string;
 };
 export type Viewer = Member | null;

@@ -27,13 +27,14 @@ if account not in role['members']:
  role['members'].append(account);call(tenant_url+':setIamPolicy','POST',{'policy':policy})
 print('Runtime permissions configured.')
 # Preserve existing Rosemont credentials; never copy another application's key.
-mail_secrets = ['ROSEMONT_MAILGUN_API_KEY', 'ROSEMONT_MAILGUN_DOMAIN', 'ROSEMONT_MAIL_FROM']
+# ROSEMONT_ADDRESS_KEY is the AES-256 key (32 random bytes, base64) for the opt-in remembered addresses.
+mail_secrets = ['ROSEMONT_MAILGUN_API_KEY', 'ROSEMONT_MAILGUN_DOMAIN', 'ROSEMONT_MAIL_FROM', 'ROSEMONT_ADDRESS_KEY']
 for name in mail_secrets:
  exists = subprocess.run(['gcloud', 'secrets', 'describe', name, '--project='+PROJECT], capture_output=True).returncode == 0
  if exists:
   cmd(['secrets', 'add-iam-policy-binding', name, '--member='+account, '--role=roles/secretmanager.secretAccessor'])
  else:
-  print('MAILGUN_SETUP_REQUIRED: Create '+name+' before deployment; see README.md.')
+  print('SECRET_SETUP_REQUIRED: Create '+name+' before deployment; see README.md.')
 print('Existing Rosemont Mailgun secret values preserved.')
 env={'GOOGLE_CLOUD_PROJECT':PROJECT,'FIRESTORE_DATABASE':'rosemont-club','FIREBASE_TENANT_ID':'alex311-qfnem','FIREBASE_API_KEY':config['apiKey'],'FIREBASE_APP_ID':config['appId'],'APP_BASE_URL':'https://rosemont.club','APP_ADDITIONAL_ORIGINS':'https://rosemont-club-650621702399.us-east4.run.app,https://rosemont-club-wiz2ttea4a-uk.a.run.app'}
 open('.env.local','w').write('\n'.join(k+'='+v for k,v in env.items())+'\n');os.chmod('.env.local',0o600)
