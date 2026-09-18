@@ -167,7 +167,6 @@ async function handle(
                 { "/": "/following" },
                 { "/": "/about" },
                 { "/": "/governance" },
-                { "/": "/guidelines" },
               ],
             },
           ],
