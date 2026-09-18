@@ -58,6 +58,7 @@ test("visibility access matrix is enforced", () => {
 test("restricted records expose only explicit teaser fields", () => {
   const projected = projectEntity(group, null);
   assert.deepEqual(Object.keys(projected!).sort(), [
+    "channelTypes",
     "id",
     "kind",
     "locked",
@@ -65,6 +66,7 @@ test("restricted records expose only explicit teaser fields", () => {
     "slug",
     "visibility",
   ]);
+  assert.deepEqual(projected!.channelTypes, ["WhatsApp"]);
   for (const secret of [
     "SECRET",
     "secret.example",
@@ -78,16 +80,25 @@ test("restricted records expose only explicit teaser fields", () => {
     "SECRET DESCRIPTION",
   );
 });
-test("public groups never leak a private communication channel", () => {
-  assert.deepEqual(
-    projectEntity({ ...group, visibility: "public" }, null)?.channels,
-    [],
-  );
-  assert.equal(
-    projectEntity({ ...group, visibility: "public" }, resident)?.channels
-      ?.length,
-    1,
-  );
+test("public groups show a private channel as an indicator only, never its details", () => {
+  const teaser = projectEntity({ ...group, visibility: "public" }, null)?.channels;
+  assert.deepEqual(teaser, [
+    {
+      type: "WhatsApp",
+      label: "Private",
+      visibility: "residents",
+      url: "",
+      email: "",
+      instructions: "",
+      locked: true,
+    },
+  ]);
+  for (const secret of ["secret.example", "Private directions"])
+    assert.ok(!JSON.stringify(teaser).includes(secret));
+  const full = projectEntity({ ...group, visibility: "public" }, resident)?.channels;
+  assert.equal(full?.length, 1);
+  assert.equal(full?.[0].url, "https://secret.example/invite");
+  assert.equal(full?.[0].locked, undefined);
 });
 test("owners can manage only owned objects; drafts and archives are not public", () => {
   assert.equal(canManage(group, member), false);
