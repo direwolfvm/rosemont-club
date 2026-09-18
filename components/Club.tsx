@@ -2181,8 +2181,18 @@ function Profile({
   const [name, setName] = useState(user.displayName),
     [bio, setBio] = useState(user.bio),
     [address, setAddress] = useState(""),
+    [remember, setRemember] = useState(!!user.addressStored),
     [busy, setBusy] = useState(false),
     [result, setResult] = useState("");
+  const me = user as Member & {
+    rulesUpdatedAt?: string;
+    addressStorageAvailable?: boolean;
+  };
+  const recheckNeeded =
+    !user.addressStored &&
+    user.verifiedResident &&
+    !!me.rulesUpdatedAt &&
+    me.rulesUpdatedAt > (user.eligibilityCheckedAt || "");
   return (
     <div className="profile-grid">
       <section className="side-card">
@@ -2255,19 +2265,49 @@ function Profile({
           </span>
         </div>
         <p className="muted">
-          Your address is sent to the U.S. Census geocoder to locate it. We do
-          not store the address or coordinates, and administrators cannot see
-          them. This is an address-location check, not proof that you occupy a
-          home.
+          Your address is sent to the U.S. Census geocoder to locate it.
+          Unless you ask us to remember it, we keep only the result, and
+          administrators cannot see the address or coordinates. This is an
+          address-location check, not proof that you occupy a home.
         </p>
-        {user.verifiedResident ? (
+        {user.verifiedResident && (
           <p className="notice">
             <Check size={18} /> Verified{" "}
             {user.verificationDate
               ? new Date(user.verificationDate).toLocaleDateString()
               : ""}
+            {user.addressStored ? " · address remembered" : ""}
           </p>
-        ) : (
+        )}
+        {recheckNeeded && (
+          <p className="notice" role="status">
+            Block groups were added or changed since your last address check.
+            Re-check your address below to see whether you qualify, or tick
+            “remember my address” so this happens automatically.
+          </p>
+        )}
+        {user.addressStored && (
+          <p className="muted">
+            Your address is remembered, encrypted, so new block groups are
+            checked for you automatically.{" "}
+            <button
+              className="text-button"
+              onClick={async () => {
+                try {
+                  await api("residency/forget", "POST", {});
+                  await refresh();
+                  setRemember(false);
+                  notify("Your remembered address has been deleted.");
+                } catch (e) {
+                  notify((e as Error).message);
+                }
+              }}
+            >
+              Forget my address
+            </button>
+          </p>
+        )}
+        {(
           <form
             onSubmit={async (e) => {
               e.preventDefault();
@@ -2278,12 +2318,16 @@ function Profile({
               try {
                 const r = await api("residency", "POST", {
                   address: submitted,
+                  remember,
                 });
                 setResult(
                   r.verifiedResident
                     ? "Your address falls inside the Club boundary. You’re verified." +
                         (r.eligibleGroupIds?.length
                           ? ` It also qualifies you for ${r.eligibleGroupIds.length} block group${r.eligibleGroupIds.length === 1 ? "" : "s"}.`
+                          : "") +
+                        (r.addressStored
+                          ? " Your address is remembered for future block-group checks."
                           : "")
                     : r.matched
                       ? "That address falls outside the current Club boundary. You can request volunteer review."
@@ -2309,8 +2353,34 @@ function Profile({
                 onChange={(e) => setAddress(e.target.value)}
               />
             </label>
+            <label className="check remember-address">
+              <input
+                type="checkbox"
+                checked={remember}
+                disabled={me.addressStorageAvailable === false}
+                onChange={(e) => setRemember(e.target.checked)}
+              />
+              <span>
+                Remember my address for future block groups
+                <small>
+                  Some groups are limited to a street or a few blocks. If you
+                  tick this, we keep an encrypted copy of the geocoded result so
+                  we can re-check you automatically when such groups are added
+                  or changed. It is never shown to anyone, including
+                  administrators, and you can delete it any time. Leave it
+                  unticked and nothing about your address is kept; you may be
+                  asked to re-check later.
+                </small>
+              </span>
+            </label>
             <button disabled={busy}>
-              {busy ? "Checking and discarding address…" : "Verify residency"}
+              {busy
+                ? remember
+                  ? "Checking address…"
+                  : "Checking and discarding address…"
+                : user.verifiedResident
+                  ? "Re-check my address"
+                  : "Verify residency"}
             </button>
           </form>
         )}

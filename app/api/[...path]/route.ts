@@ -23,6 +23,12 @@ import {
 } from "@/lib/residency";
 import { sendMail } from "@/lib/mail";
 import { fetchFeed } from "@/lib/external-calendar";
+import {
+  addressStorageEnabled,
+  rememberAddress,
+  forgetAddress,
+  reevaluateGroup,
+} from "@/lib/address-store";
 import { allowedOrigin } from "@/lib/origin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -142,7 +148,18 @@ async function handle(
   }
   if (section === "me") {
     requireUser(user);
-    if (method === "GET") return json(user);
+    if (method === "GET") {
+      const custom = await db
+        .collection("entities")
+        .where("kind", "==", "groups")
+        .where("eligibility.mode", "==", "custom")
+        .get();
+      const rulesUpdatedAt = custom.docs
+        .map((d) => String(d.get("updatedAt") || ""))
+        .sort()
+        .at(-1) || "";
+      return json({ ...user, rulesUpdatedAt, addressStorageAvailable: addressStorageEnabled() });
+    }
     if (method === "PATCH") {
       const p = z
         .object({
@@ -167,11 +184,24 @@ async function handle(
         message: "A volunteer will review your request. No address was saved.",
       });
     }
+    if (id === "forget") {
+      await forgetAddress(user.id);
+      await db.collection("users").doc(user.id).update({ addressStored: false });
+      return json({ ok: true });
+    }
     await limit("residency:" + user.id, 5);
-    const { address } = z
-      .object({ address: z.string().trim().min(8).max(250) })
+    const { address, remember } = z
+      .object({
+        address: z.string().trim().min(8).max(250),
+        remember: z.boolean().default(false),
+      })
       .strict()
       .parse(await body(req));
+    if (remember && !addressStorageEnabled())
+      throw new HttpError(
+        503,
+        "Remembering addresses is not available right now. Untick the option to verify without saving.",
+      );
     let match;
     try {
       match = await geocodeAddress(address);
@@ -190,11 +220,18 @@ async function handle(
         .where("eligibility.mode", "==", "custom")
         .get()
     ).docs.map((d) => d.data() as Entity);
+    const now = new Date().toISOString();
+    // Store (encrypted) or clear the remembered address according to the
+    // member's choice on this submission, so the flag always matches reality.
+    if (remember && match) await rememberAddress(user.id, match);
+    else await forgetAddress(user.id);
     const update = {
       verifiedResident: residentFromMatch(match),
-      verificationDate: new Date().toISOString(),
+      verificationDate: now,
       verificationMethod: "census-geocoder/" + boundaryVersion,
       eligibleGroupIds: eligibleGroupIds(match, custom),
+      eligibilityCheckedAt: now,
+      addressStored: remember && !!match,
     };
     await db.collection("users").doc(user.id).update(update);
     return json({ ...update, matched: !!match });
@@ -373,6 +410,10 @@ async function handle(
           throw new HttpError(409, "That URL is already in use.");
         });
       await audit(user.id, "create", entityId);
+      if (e.kind === "groups" && e.eligibility.mode === "custom") {
+        const result = await reevaluateGroup(e).catch(() => null);
+        if (result) await audit(user.id, "eligibility-recheck", entityId);
+      }
       return json(e, 201);
     }
     if (id) {
@@ -455,6 +496,16 @@ async function handle(
           tx.set(ref, next);
         });
         await audit(user.id, "edit", id);
+        if (
+          e.kind === "groups" &&
+          (JSON.stringify(next.eligibility) !== JSON.stringify(e.eligibility) ||
+            (next.status !== e.status &&
+              (next.eligibility.mode === "custom" ||
+                e.eligibility?.mode === "custom")))
+        ) {
+          const result = await reevaluateGroup(next).catch(() => null);
+          if (result) await audit(user.id, "eligibility-recheck", id);
+        }
         return json(next);
       }
       if (action === "members" && e.kind === "groups") {

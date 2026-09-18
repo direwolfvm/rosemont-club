@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Entity, Member } from "@/lib/schema";
 import { entitySchema } from "@/lib/schema";
 import { api } from "./client";
@@ -42,7 +42,27 @@ export default function Editor({
     [saving, setSaving] = useState(false),
     [testAddress, setTestAddress] = useState(""),
     [testResult, setTestResult] = useState(""),
-    [testing, setTesting] = useState(false);
+    [testing, setTesting] = useState(false),
+    [people, setPeople] = useState<Member[]>([]),
+    [ownerQuery, setOwnerQuery] = useState("");
+  useEffect(() => {
+    if (user.admin)
+      api("admin/users")
+        .then(setPeople)
+        .catch(() => {});
+  }, [user.admin]);
+  const person = (id: string) => people.find((p) => p.id === id);
+  const ownerMatches = ownerQuery.trim()
+    ? people
+        .filter((p) => !form.ownerIds.includes(p.id))
+        .filter((p) =>
+          [p.displayName, p.email, p.id]
+            .join(" ")
+            .toLowerCase()
+            .includes(ownerQuery.trim().toLowerCase()),
+        )
+        .slice(0, 8)
+    : [];
   const change = (key: string, value: unknown) =>
     setForm((f) =>
       key === "eligibilityNote"
@@ -755,20 +775,89 @@ export default function Editor({
           select("scope", "Tag category", ["audience", "topic"])}
         {user.admin && (
           <fieldset>
-            <legend>Shared ownership</legend>
+            <legend>Owners</legend>
+            <p className="muted">
+              Owners can edit this listing and, for groups, create its events
+              and approve join requests. Several people can share ownership.
+            </p>
+            <ul className="owner-list">
+              {form.ownerIds.map((id: string) => (
+                <li key={id}>
+                  <span>
+                    <strong>{person(id)?.displayName || "Account " + id.slice(0, 8) + "…"}</strong>
+                    <small>{person(id)?.email || id}</small>
+                  </span>
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() =>
+                      change(
+                        "ownerIds",
+                        form.ownerIds.filter((x: string) => x !== id),
+                      )
+                    }
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+              {!form.ownerIds.length && (
+                <li className="muted">No owners yet. Administrators can still edit it.</li>
+              )}
+            </ul>
             <label>
-              Owner account IDs (one per line)
-              <textarea
-                value={form.ownerIds.join("\n")}
-                onChange={(e) =>
-                  change("ownerIds", e.target.value.split("\n").filter(Boolean))
-                }
+              Add an owner
+              <input
+                placeholder="Search by name or email"
+                autoComplete="off"
+                value={ownerQuery}
+                onChange={(e) => setOwnerQuery(e.target.value)}
               />
-              <small>
-                Copy account IDs from the People tab. Multiple owners can
-                maintain this item.
-              </small>
             </label>
+            {ownerQuery.trim() && (
+              <ul className="owner-list owner-results">
+                {ownerMatches.map((p) => (
+                  <li key={p.id}>
+                    <span>
+                      <strong>{p.displayName}</strong>
+                      <small>
+                        {p.email}
+                        {p.disabled ? " · disabled" : ""}
+                      </small>
+                    </span>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={p.disabled}
+                      onClick={() => {
+                        change("ownerIds", [...form.ownerIds, p.id]);
+                        setOwnerQuery("");
+                      }}
+                    >
+                      Add
+                    </button>
+                  </li>
+                ))}
+                {!ownerMatches.length && (
+                  <li className="muted">
+                    No matching members. They need to sign in to the site once
+                    before they can be made an owner.
+                  </li>
+                )}
+              </ul>
+            )}
+            <details>
+              <summary>Advanced: edit account IDs directly</summary>
+              <label>
+                Owner account IDs (one per line)
+                <textarea
+                  value={form.ownerIds.join("\n")}
+                  onChange={(e) =>
+                    change("ownerIds", e.target.value.split("\n").filter(Boolean))
+                  }
+                />
+              </label>
+            </details>
           </fieldset>
         )}
         {["resources", "groups", "events"].includes(kind) && (
