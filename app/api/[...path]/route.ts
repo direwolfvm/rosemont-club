@@ -142,6 +142,9 @@ async function handle(
       tenantId: process.env.FIREBASE_TENANT_ID || "alex311-qfnem",
       iosMinimumVersion: process.env.IOS_MINIMUM_VERSION || "1.0.0",
       platform: iosReady ? "ios" : "web",
+      // The website shows "Continue with Apple" once the Apple Services ID
+      // exists and is set on the tenant's Apple provider.
+      appleSignIn: !!process.env.APPLE_SERVICES_ID,
     });
   }
   if (section === "apple-app-site-association" && method === "GET") {

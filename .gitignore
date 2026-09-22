@@ -150,3 +150,7 @@ output/
 *.tsbuildinfo
 
 .playwright-cli/
+
+# Python bytecode from the operations scripts
+__pycache__/
+*.pyc

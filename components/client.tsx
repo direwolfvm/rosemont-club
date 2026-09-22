@@ -5,6 +5,7 @@ import {
   Auth,
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -13,9 +14,13 @@ import {
   deleteUser,
 } from "firebase/auth";
 let authPromise: Promise<Auth> | undefined;
+let configPromise: Promise<Record<string, unknown>> | undefined;
+/** Public client configuration from the server, fetched once. */
+export function siteConfig() {
+  return (configPromise ??= fetch("/api/config").then((r) => r.json()));
+}
 export function clientAuth() {
-  return (authPromise ??= fetch("/api/config")
-    .then((r) => r.json())
+  return (authPromise ??= siteConfig()
     .then((config) => {
       const auth = getAuth(getApps().length ? getApp() : initializeApp(config));
       auth.tenantId = config.tenantId;
@@ -54,6 +59,7 @@ export async function downloadCalendar(id?: string) {
 export {
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,

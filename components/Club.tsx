@@ -32,6 +32,8 @@ import {
   downloadCalendar,
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
+  siteConfig,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -583,10 +585,37 @@ function AuthDialog({
     [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [appleSignIn, setAppleSignIn] = useState(false);
   useEffect(() => {
     ref.current?.showModal();
+    siteConfig()
+      .then((c) => setAppleSignIn(!!c.appleSignIn))
+      .catch(() => {});
   }, []);
+  async function withProvider(
+    provider: GoogleAuthProvider | OAuthProvider,
+    name: string,
+  ) {
+    try {
+      setBusy(true);
+      setError("");
+      await signInWithPopup(await clientAuth(), provider);
+      close();
+    } catch (e) {
+      const code = (e as { code?: string }).code || "";
+      setError(
+        code === "auth/account-exists-with-different-credential"
+          ? "An account with this email already exists with a different sign-in method. Sign in the way you did before (email or Google)."
+          : code === "auth/popup-closed-by-user" ||
+              code === "auth/cancelled-popup-request"
+            ? ""
+            : name + " sign-in did not finish. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -636,26 +665,32 @@ function AuthDialog({
       </h2>
       <p>One account for The Rosemont Club and Alex311 Reborn.</p>
       {mode !== "reset" && (
-        <button
-          className="secondary wide"
-          disabled={busy}
-          onClick={async () => {
-            try {
-              setBusy(true);
-              await signInWithPopup(
-                await clientAuth(),
-                new GoogleAuthProvider(),
-              );
-              close();
-            } catch {
-              setError("Google sign-in did not finish. Please try again.");
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          Continue with Google <ArrowUpRight size={16} />
-        </button>
+        <div className="provider-buttons">
+          <button
+            className="secondary wide"
+            disabled={busy}
+            onClick={() => void withProvider(new GoogleAuthProvider(), "Google")}
+          >
+            Continue with Google <ArrowUpRight size={16} />
+          </button>
+          {appleSignIn && (
+            <button
+              className="wide apple-button"
+              disabled={busy}
+              onClick={() => {
+                const provider = new OAuthProvider("apple.com");
+                provider.addScope("email");
+                provider.addScope("name");
+                void withProvider(provider, "Apple");
+              }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+              </svg>
+              Continue with Apple
+            </button>
+          )}
+        </div>
       )}
       <form onSubmit={submit}>
         <label>

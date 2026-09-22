@@ -2489,3 +2489,24 @@ dialog form {
 .delete-account h3 {
   font-size: 22px;
 }
+
+/* Sign-in providers. The Apple button follows Apple's black style with the logo. */
+.provider-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.apple-button {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+  gap: 8px;
+}
+.apple-button:hover {
+  background: #1a1a1a;
+}
+.apple-button svg {
+  width: 18px;
+  height: 18px;
+}
