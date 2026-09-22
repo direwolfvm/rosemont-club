@@ -52,6 +52,29 @@ minimum is stricter and fine.
 
 Enabled on tenant `alex311-qfnem` on September 22, 2026 (`defaultSupportedIdpConfigs/apple.com`, client ID `com.rosemont.rosemontclub`). The app exchanges Apple's identity token through `accounts:signInWithIdp` with `providerId=apple.com`; the token audience is the App Store bundle ID, which is a registered Firebase iOS app. No Services ID or key is configured because the website does not offer Apple sign-in. Neighbors who choose Hide My Email get an `@privaterelay.appleid.com` address; for Mailgun mail to reach them, `mg.rosemont.club` and the from-address must be registered under Sign in with Apple for Email Communication in the Apple Developer account (a portal task).
 
+## Sign in with Apple on the website
+
+The site shows "Continue with Apple" when `APPLE_SERVICES_ID` is set in
+`deploy-env.yaml`. Setup, in order:
+
+1. Apple Developer portal, Identifiers, Services IDs: create one (for example
+   `club.rosemont.web`) with the description **The Rosemont Club**; that
+   description is what Apple's sign-in sheet shows. Enable Sign in with
+   Apple on it, choose the Rosemont Club app as the primary App ID, and add
+   domain `permitting-ai-helper.firebaseapp.com` with return URL
+   `https://permitting-ai-helper.firebaseapp.com/__/auth/handler` (the
+   Firebase auth handler the website's popup uses).
+2. Set the tenant's Apple provider `clientId` to the Services ID (it is the
+   App Store bundle ID today; native tokens keep working because
+   `appleSignInConfig.bundleIds` lists both bundles). The private key already
+   configured for revocation serves the web flow too.
+3. Set `APPLE_SERVICES_ID` in `deploy-env.yaml` and deploy.
+
+Accounts are one-per-email: signing in with Apple on an email that already
+has a password or Google sign-in is refused with a message to use the
+original method. Hide My Email relay addresses work because
+`mg.rosemont.club` is registered for Sign in with Apple email communication.
+
 ## Account deletion
 
 `POST /api/me/delete` (JSON body `{}`) or `DELETE /api/me`, bearer token required, rate limited. It deletes the member's profile, follows, RSVPs (correcting capacity counters), poll responses, and any remembered address; anonymizes their messages to the volunteers (`userId: "deleted"`); releases ownership of listings without deleting them; audits `account-delete`; and returns `{ ok, identityDeleted, releasedListings }`. The runtime service account deliberately has no Firebase account-write privilege, so `identityDeleted` is `false` and the client deletes the Firebase identity itself (`accounts:delete` in the app, `deleteUser` on the website). The last active administrator is refused with 403 and a clear message. Deleting the identity also removes the Alex311 Reborn sign-in; both clients say so before confirming. The website offers the same action on the profile page.
