@@ -55,7 +55,8 @@ Enabled on tenant `alex311-qfnem` on September 22, 2026 (`defaultSupportedIdpCon
 ## Sign in with Apple on the website
 
 The site shows "Continue with Apple" when `APPLE_SERVICES_ID` is set in
-`deploy-env.yaml`. Setup, in order:
+`deploy-env.yaml`. Done on September 22, 2026 with Services ID
+`com.rosemont.rosemontclubweb`. Setup, in order:
 
 1. Apple Developer portal, Identifiers, Services IDs: create one (for example
    `club.rosemont.web`) with the description **The Rosemont Club**; that
