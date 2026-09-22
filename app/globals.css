@@ -2481,3 +2481,11 @@ dialog form {
     grid-template-columns: 1fr;
   }
 }
+
+.delete-account {
+  margin-top: 30px;
+  border-color: #e4c3b4;
+}
+.delete-account h3 {
+  font-size: 22px;
+}

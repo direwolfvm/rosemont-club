@@ -10,6 +10,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   signOut,
+  deleteUser,
 } from "firebase/auth";
 let authPromise: Promise<Auth> | undefined;
 export function clientAuth() {
@@ -58,4 +59,5 @@ export {
   sendEmailVerification,
   sendPasswordResetEmail,
   signOut,
+  deleteUser,
 };

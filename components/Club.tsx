@@ -37,6 +37,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   signOut,
+  deleteUser,
 } from "./client";
 import Editor from "./Editor";
 import HistoryCarousel from "./HistoryCarousel";
@@ -2825,6 +2826,58 @@ function Profile({
             listing” on its page.
           </p>
         )}
+        <section className="side-card delete-account">
+          <h3>Delete your account</h3>
+          <p>
+            Removes your profile, follows, RSVPs, poll responses, and any
+            remembered address, and takes your name off messages you sent to the
+            volunteers. Listings you own stay up for an administrator to
+            reassign.
+          </p>
+          <p>
+            Your sign-in is shared with Alex311 Reborn, so deleting it here
+            removes that sign-in as well.
+          </p>
+          <button
+            className="secondary"
+            disabled={busy}
+            onClick={async () => {
+              if (
+                !window.confirm(
+                  "Delete your account? This removes your Rosemont Club data and your shared sign-in (including Alex311 Reborn). It cannot be undone.",
+                )
+              )
+                return;
+              setBusy(true);
+              try {
+                const r = await api("me/delete", "POST", {});
+                const a = await clientAuth();
+                let identityGone = !!r.identityDeleted;
+                if (!identityGone && a.currentUser) {
+                  try {
+                    await deleteUser(a.currentUser);
+                    identityGone = true;
+                  } catch {
+                    identityGone = false;
+                  }
+                }
+                if (a.currentUser) await signOut(a).catch(() => {});
+                await refresh();
+                notify(
+                  identityGone
+                    ? "Your account is deleted."
+                    : "Your Club data is deleted. To remove the shared sign-in too, sign in again and choose Delete account right away.",
+                );
+              } catch (e) {
+                notify((e as Error).message);
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Delete my account
+          </button>
+        </section>
       </section>
     </div>
   );

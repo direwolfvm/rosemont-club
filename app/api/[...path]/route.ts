@@ -29,6 +29,7 @@ import {
   forgetAddress,
   reevaluateGroup,
 } from "@/lib/address-store";
+import { deleteAccount, lastActiveAdmin } from "@/lib/account";
 import { allowedOrigin } from "@/lib/origin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -207,6 +208,21 @@ async function handle(
   }
   if (section === "me") {
     requireUser(user);
+    // Account deletion: POST /api/me/delete or DELETE /api/me.
+    if ((method === "POST" && id === "delete") || (method === "DELETE" && !id)) {
+      await limit("delete:" + user.id, 3);
+      const admins = (
+        await db.collection("users").where("admin", "==", true).get()
+      ).docs.map((d) => ({ id: d.id, disabled: !!d.get("disabled") }));
+      if (lastActiveAdmin(user, admins))
+        throw new HttpError(
+          403,
+          "You are the only administrator. Make another neighbor an administrator before deleting your account.",
+        );
+      const result = await deleteAccount(user.id);
+      await audit(user.id, "account-delete", user.id);
+      return json({ ok: true, ...result });
+    }
     if (method === "GET") {
       const custom = await db
         .collection("entities")
@@ -891,4 +907,10 @@ async function route(
     return json({ error: "Something went wrong. Please try again." }, 500);
   }
 }
-export { route as GET, route as HEAD, route as POST, route as PATCH };
+export {
+  route as GET,
+  route as HEAD,
+  route as POST,
+  route as PATCH,
+  route as DELETE,
+};
