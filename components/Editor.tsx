@@ -22,7 +22,14 @@ export default function Editor({
   const [form, setForm] = useState<Record<string, any>>(() =>
     entity
       ? // Older records may predate newer optional fields; fill their defaults.
-        { ...entity, ...entitySchema.parse(entity) }
+        // Channels once marked "public" now mean "signed-in members".
+        {
+          ...entity,
+          ...entitySchema.parse(entity),
+          channels: entity.channels.map((c) =>
+            c.visibility === "public" ? { ...c, visibility: "members" } : c,
+          ),
+        }
       : {
           ...entitySchema.parse({
             kind: kind === "events" ? "groups" : kind,
@@ -289,10 +296,18 @@ export default function Editor({
                         )
                       }
                     >
-                      {["public", "members", "residents"].map((x) => (
-                        <option key={x}>{x}</option>
+                      {["members", "residents"].map((x) => (
+                        <option key={x} value={x}>
+                          {x === "members"
+                            ? "Signed-in members"
+                            : "Verified residents"}
+                        </option>
                       ))}
                     </select>
+                    <small>
+                      Chats, invitations, and join instructions are never
+                      shown to visitors who aren’t signed in.
+                    </small>
                   </label>
                 </div>
                 <button
@@ -321,7 +336,7 @@ export default function Editor({
                     url: "",
                     email: "",
                     instructions: "",
-                    visibility: "residents",
+                    visibility: "members",
                   },
                 ])
               }

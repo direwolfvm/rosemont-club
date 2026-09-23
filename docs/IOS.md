@@ -124,3 +124,10 @@ to the iOS side, do not:
 
 `iosMinimumVersion` in `/api/config` is the lever for a breaking change: raise
 it and the app prompts for an update.
+
+Since September 23, 2026, unauthenticated requests receive group and event
+join details redacted: every channel comes back with `locked: true` and empty
+`url`, `email`, and `instructions`, and `joinInstructions` and `contactEmail`
+are empty strings. Signed-in requests are unchanged. The app already renders
+locked channels, so no change is required; showing a "sign in to see how to
+join" prompt for signed-out users would match the website.

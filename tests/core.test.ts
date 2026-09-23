@@ -80,6 +80,30 @@ test("restricted records expose only explicit teaser fields", () => {
     "SECRET DESCRIPTION",
   );
 });
+test("join details are withheld from visitors who are not signed in, even on public channels", () => {
+  const open: Entity = {
+    ...group,
+    visibility: "public",
+    joinInstructions: "Scan the QR code in the lobby",
+    channels: [{ ...group.channels[0], visibility: "public" }],
+  };
+  const anonymous = projectEntity(open, null)!;
+  assert.equal(anonymous.joinInstructions, "");
+  assert.equal(anonymous.contactEmail, "");
+  assert.deepEqual(anonymous.channels?.map((c) => [c.locked, c.visibility, c.url]), [
+    [true, "members", ""],
+  ]);
+  assert.ok(!JSON.stringify(anonymous).includes("secret.example"));
+  assert.ok(!JSON.stringify(anonymous).includes("QR code"));
+  const signedIn = projectEntity(open, member)!;
+  assert.equal(signedIn.joinInstructions, "Scan the QR code in the lobby");
+  assert.equal(signedIn.channels?.[0].url, "https://secret.example/invite");
+  assert.equal(signedIn.channels?.[0].locked, undefined);
+  // Resources keep their public contact details.
+  const resource = { ...open, kind: "resources" as const, channels: [] };
+  assert.equal(projectEntity(resource, null)?.contactEmail, "secret@example.com");
+});
+
 test("public groups show a private channel as an indicator only, never its details", () => {
   const teaser = projectEntity({ ...group, visibility: "public" }, null)?.channels;
   assert.deepEqual(teaser, [
