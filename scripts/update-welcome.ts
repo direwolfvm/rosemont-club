@@ -23,6 +23,8 @@ const fields: Record<string, Field[]> = {
   "content-privacy-policy": ["name", "summary", "description"],
   "content-support": ["name", "summary", "description"],
   "groups-rosemont-neighbors": ["summary", "joinInstructions", "channels"],
+  "groups-brooks-bike-bus": ["channels"],
+  "groups-brooks-pta": ["channels"],
   "events-rosemont-happy-hour": ["summary", "description"],
   "resources-rosemont-history": ["summary"],
   "resources-alex311-visibility": ["name", "description", "website"],

@@ -304,17 +304,23 @@ export function projectEntity(e: Entity, user: Viewer): Card | null {
         : {}),
     };
   if (canManage(e, user)) return e;
+  // Join details are never sent to visitors who are not signed in, whatever a
+  // channel's own audience says, so they cannot be scraped from the public
+  // API. Signed-in members then see what the channel's audience allows.
+  const signedIn = !!user && !user.disabled;
+  const gated = ["groups", "events"].includes(e.kind) && !signedIn;
   return {
     ...e,
+    joinInstructions: gated ? "" : e.joinInstructions,
     // Protected channels stay visible as an indicator (what exists and for
     // whom) but their invitation, address, and instructions are withheld.
     channels: e.channels.map((c): ChannelView =>
-      canView(c.visibility, user)
+      signedIn && canView(c.visibility, user)
         ? c
         : {
             type: c.type,
             label: c.label,
-            visibility: c.visibility,
+            visibility: c.visibility === "public" ? "members" : c.visibility,
             url: "",
             email: "",
             instructions: "",
@@ -329,7 +335,8 @@ export function projectEntity(e: Entity, user: Viewer): Card | null {
       polygon: [],
       note: e.eligibility?.note || "",
     },
-    // With relay on, readers write through the site instead of seeing the address.
-    contactEmail: e.contactRelay ? "" : e.contactEmail,
+    // With relay on, readers write through the site instead of seeing the
+    // address; group and event contact addresses also wait for sign-in.
+    contactEmail: e.contactRelay || gated ? "" : e.contactEmail,
   };
 }

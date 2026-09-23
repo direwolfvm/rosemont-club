@@ -2149,7 +2149,18 @@ function Detail({
           {e.kind === "groups" && (
             <>
               <h2>How to join</h2>
-              <p>{e.joinInstructions}</p>
+              {user ? (
+                <p>{e.joinInstructions}</p>
+              ) : (
+                <p className="notice">
+                  <LockKeyhole size={14} /> Sign in to see how to join and
+                  where this group talks. Chats and invitations are shown to
+                  signed-in neighbors only.{" "}
+                  <button className="text-button" onClick={signIn}>
+                    Sign in
+                  </button>
+                </p>
+              )}
               <p className="muted">
                 Groups and their chats follow the Club’s{" "}
                 <Link href="/guidelines">community guidelines</Link>.
