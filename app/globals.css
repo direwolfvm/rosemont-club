@@ -2510,3 +2510,132 @@ dialog form {
   width: 18px;
   height: 18px;
 }
+
+/* Get-the-app page and homepage strip. */
+.app-hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 50px;
+  align-items: center;
+  padding: 56px 0 30px;
+}
+.app-hero h1 {
+  font-size: 62px;
+  margin: 12px 0 18px;
+}
+.app-hero p {
+  font-size: 17px;
+  max-width: 560px;
+}
+.app-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.app-store-badge img {
+  display: block;
+}
+.app-hero-side {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  justify-content: flex-end;
+}
+.app-icon {
+  border-radius: 28px;
+  box-shadow: 0 10px 30px #1b2f4326;
+}
+.app-qr {
+  text-align: center;
+  max-width: 150px;
+}
+.app-qr img {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px;
+  background: #fff;
+  margin: 0 auto 6px;
+}
+.app-pillars .pillar {
+  transform: none;
+}
+.app-screens {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.app-screens figure {
+  margin: 0;
+  text-align: center;
+}
+.app-screens img {
+  width: 100%;
+  height: auto;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px #1b2f4318;
+}
+.app-screens figcaption {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.app-strip {
+  margin-top: 50px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 26px 30px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--mist);
+}
+.app-strip img {
+  border-radius: 16px;
+  flex-shrink: 0;
+}
+.app-strip h2 {
+  font-size: 28px;
+  margin: 6px 0 8px;
+}
+.app-strip p {
+  margin: 0;
+  color: var(--muted);
+}
+.app-strip > a {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+@media (max-width: 980px) {
+  .app-screens {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .app-hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .app-hero-side {
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 760px) {
+  .app-hero {
+    padding: 34px 0 20px;
+  }
+  .app-hero h1 {
+    font-size: 44px;
+  }
+  .app-qr {
+    display: none;
+  }
+  .app-strip {
+    flex-wrap: wrap;
+    padding: 22px;
+  }
+  .app-strip > a {
+    margin-left: 0;
+  }
+}

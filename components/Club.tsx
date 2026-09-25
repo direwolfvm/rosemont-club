@@ -54,6 +54,7 @@ const labels: Record<string, string> = {
   following: "Following",
   privacy: "Privacy",
   support: "Support",
+  app: "Get the app",
   polls: "Quick polls",
   consultations: "Consultations",
   content: "Site content",
@@ -1395,6 +1396,25 @@ export default function Club({ path }: { path: string[] }) {
           </div>
           {questions()}
         </section>
+        <section className="app-strip">
+          <img
+            src="/images/app/icon-512.png"
+            alt=""
+            width={64}
+            height={64}
+          />
+          <div>
+            <span className="eyebrow">Now on iPhone</span>
+            <h2>Get the Rosemont Club app</h2>
+            <p>
+              Groups, events, and resources on your phone, with the same
+              account as the site.
+            </p>
+          </div>
+          <Link className="button" href="/app">
+            Get the app <ArrowRight size={16} />
+          </Link>
+        </section>
         <section className="about-strip">
           <Leaf size={40} />
           <div>
@@ -1600,6 +1620,120 @@ export default function Club({ path }: { path: string[] }) {
             <button onClick={() => setAuthOpen(true)}>Sign in</button>
           </div>
         )}
+      </>
+    );
+  else if (section === "app")
+    content = (
+      <>
+        <section className="app-hero">
+          <div>
+            <span className="eyebrow">The Rosemont Club for iPhone</span>
+            <h1>The Club, in your pocket</h1>
+            <p>
+              Groups, events, local resources, and community questions, with
+              the same account as the website. Follow a group, RSVP with one
+              tap, add gatherings to your calendar, and sign in with Face ID.
+            </p>
+            <div className="app-actions">
+              <a
+                className="app-store-badge"
+                href="https://apps.apple.com/us/app/rosemont-club/id6813670770"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <img
+                  src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83"
+                  alt="Download on the App Store"
+                  width={166}
+                  height={55}
+                />
+              </a>
+              <span className="muted">Free · Requires iOS 17 or later</span>
+            </div>
+          </div>
+          <div className="app-hero-side">
+            <img
+              className="app-icon"
+              src="/images/app/icon-512.png"
+              alt="Rosemont Club app icon"
+              width={128}
+              height={128}
+            />
+            <div className="app-qr">
+              <img
+                src="/images/app/app-store-qr.svg"
+                alt="QR code linking to the Rosemont Club app on the App Store"
+                width={132}
+                height={132}
+              />
+              <small>Point your iPhone camera here to open the App Store.</small>
+            </div>
+          </div>
+        </section>
+        <section className="home-section">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">What you can do</span>
+              <h2>Everything from the site, made for a phone</h2>
+            </div>
+          </div>
+          <div className="pillars app-pillars">
+            {[
+              { pillar: "groups", title: "Groups", text: "Follow neighborhood groups and open their chats and lists right from the app." },
+              { pillar: "events", title: "Events", text: "See what’s coming up, RSVP to a date, and add it to your calendar with one tap." },
+              { pillar: "resources", title: "Resources", text: "Look up city services, schools, parks, and local contacts wherever you are." },
+              { pillar: "questions", title: "Community questions", text: "Answer quick polls and send ideas to the volunteers." },
+            ].map((p) => (
+              <div className="pillar" data-pillar={p.pillar} key={p.pillar}>
+                <span className="pillar-icon">{iconFor(p.pillar)}</span>
+                <h3>{p.title}</h3>
+                <p>{p.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="home-section">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">A look inside</span>
+              <h2>Screens</h2>
+            </div>
+          </div>
+          <div className="app-screens">
+            {[
+              ["screen-1-home", "Home"],
+              ["screen-2-events", "Events"],
+              ["screen-4-groups", "Groups"],
+              ["screen-6-resources", "Resources"],
+            ].map(([file, label]) => (
+              <figure key={file}>
+                <img
+                  src={"/images/app/" + file + ".jpg"}
+                  alt={label + " screen of the Rosemont Club app"}
+                  loading="lazy"
+                  width={375}
+                  height={812}
+                />
+                <figcaption>{label}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+        <section className="about-strip">
+          <div>
+            <span className="eyebrow">One account</span>
+            <h2>Same account, same neighbors</h2>
+            <p>
+              Sign in with the email, Google, or Apple account you use on the
+              website. Your profile, follows, RSVPs, and residency status stay
+              in sync. Verified residency and privacy work exactly as they do
+              here; your address is never stored unless you ask.
+            </p>
+          </div>
+          <Link className="secondary" href="/privacy">
+            Privacy <ArrowUpRight size={17} />
+          </Link>
+        </section>
       </>
     );
   else if (section === "privacy" || section === "support") {
@@ -1858,6 +1992,7 @@ export default function Club({ path }: { path: string[] }) {
             <Link href="/about">About the Club</Link>
             <Link href="/guidelines">Community guidelines</Link>
             <Link href="/governance">Volunteer & ideas</Link>
+            <Link href="/app">Get the app</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/support">Support</Link>
             <Link href="/profile">Your privacy & residency</Link>
