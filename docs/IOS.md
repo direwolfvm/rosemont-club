@@ -109,8 +109,11 @@ included for Password AutoFill.
 
 ## Smart App Banner
 
-Set `APPLE_APP_STORE_ID` in `deploy-env.yaml` once the app is listed; the
-layout then emits `<meta name="apple-itunes-app">`.
+`APPLE_APP_STORE_ID` is `6813670770` (listed September 25, 2026); the layout
+emits `<meta name="apple-itunes-app">` so mobile Safari offers the app. The
+website also has a `/app` page with the App Store badge, a QR code, the
+icon, and App Store screenshots (`public/images/app/`), linked from the
+homepage and footer. Listing: https://apps.apple.com/us/app/rosemont-club/id6813670770
 
 ## API contract
 
