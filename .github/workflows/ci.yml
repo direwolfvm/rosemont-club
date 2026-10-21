@@ -100,7 +100,10 @@ jobs:
           steps.meta.outputs.package-ecosystem == 'github-actions' ||
           steps.meta.outputs.update-type == 'version-update:semver-patch' ||
           steps.meta.outputs.update-type == 'version-update:semver-minor'
-        run: gh pr merge "$PR_URL" --squash --delete-branch
+        # main is protected here (code-owner review and required checks), so a
+        # direct merge is refused. --auto queues the merge to land once the
+        # review is approved.
+        run: gh pr merge "$PR_URL" --auto --squash --delete-branch
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ github.token }}
